@@ -27,6 +27,7 @@ mouse_filter = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_6vnth")
 
 [node name="OpenButton" type="TextureButton" parent="Panel"]
+layout_mode = 0
 offset_left = -22.0
 offset_top = -2.0
 offset_right = 3.0
@@ -35,6 +36,7 @@ tooltip_text = "open menu"
 texture_normal = ExtResource("1_dv87n")
 
 [node name="Good" type="TextureButton" parent="Panel"]
+layout_mode = 0
 offset_left = 41.6667
 offset_top = 8.66667
 offset_right = 91.6667
@@ -42,6 +44,7 @@ offset_bottom = 58.6667
 texture_normal = ExtResource("2_i3ood")
 
 [node name="Bad" type="TextureButton" parent="Panel"]
+layout_mode = 0
 offset_left = 110.333
 offset_top = 6.0
 offset_right = 160.333
@@ -49,6 +52,7 @@ offset_bottom = 56.0
 texture_normal = ExtResource("3_u6od2")
 
 [node name="Escape" type="TextureButton" parent="Panel"]
+layout_mode = 0
 offset_left = 81.3333
 offset_top = 57.0
 offset_right = 131.333

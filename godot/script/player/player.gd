@@ -129,4 +129,4 @@ func _on_status_send_god_present(kind):
 		3:body_temperature.addres(UP)
 		4:stamina.addres(UP)
 		5:ndrowsiness.addres(UP)
-		6:stress.addres(UP)
+		6:stress.addres(-UP)

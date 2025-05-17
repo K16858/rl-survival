@@ -6,17 +6,17 @@
 texture = ExtResource("1_p7r2p")
 texture_region_size = Vector2i(50, 50)
 0:0/0 = 0
-0:0/0/custom_data_0 = 10
+0:0/0/custom_data_0 = 1
 1:0/0 = 0
-1:0/0/custom_data_0 = 11
+1:0/0/custom_data_0 = 2
 2:0/0 = 0
-2:0/0/custom_data_0 = 12
+2:0/0/custom_data_0 = 3
 4:0/0 = 0
-4:0/0/custom_data_0 = 14
+4:0/0/custom_data_0 = 5
 5:0/0 = 0
-5:0/0/custom_data_0 = 15
+5:0/0/custom_data_0 = 6
 6:0/0 = 0
-6:0/0/custom_data_0 = 16
+6:0/0/custom_data_0 = 7
 7:0/0 = 0
 8:0/0 = 0
 9:0/0 = 0
@@ -73,7 +73,7 @@ texture_region_size = Vector2i(50, 50)
 19:2/0 = 0
 20:2/0 = 0
 3:0/0 = 0
-3:0/0/custom_data_0 = 13
+3:0/0/custom_data_0 = 4
 
 [resource]
 tile_size = Vector2i(50, 50)

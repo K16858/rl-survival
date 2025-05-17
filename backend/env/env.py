@@ -105,85 +105,130 @@ class IslandEnvironment:
     
     def _generate_rivers(self, height_map):
         """Generate rivers based on the height map"""
-        # Generate 1-5 rivers flowing from high to low elevation (increased from 1-3)
-        num_rivers = random.randint(1, 5)
+        # Force generate at least 2 rivers
+        num_rivers = max(2, random.randint(1, 5))
+        print(f"Generating {num_rivers} rivers...")
         
-        for _ in range(num_rivers):
-            # Start from high elevation grass areas
+        rivers_created = 0
+        max_attempts = 20  # Maximum number of attempts for river generation
+        
+        for attempt in range(max_attempts):
+            if rivers_created >= num_rivers:
+                break
+                
+            # Find river source points from higher elevations
+            # Increase candidates by lowering the threshold
+            height_threshold = 0.6 - (attempt * 0.05)  # Lower threshold with each attempt
             start_candidates = [(i, j) for i in range(self.size) for j in range(self.size)
-                               if self.map[i, j] == TileType.GRASS and height_map[i, j] > 0.6]
+                               if self.map[i, j] == TileType.GRASS and height_map[i, j] > max(0.3, height_threshold)]
             
             if not start_candidates:
+                # Ignore height condition, start from any grass tile
+                start_candidates = [(i, j) for i in range(self.size) for j in range(self.size)
+                                  if self.map[i, j] == TileType.GRASS]
+                                  
+            if not start_candidates:
+                # If still not found, start from any land tile
+                start_candidates = [(i, j) for i in range(self.size) for j in range(self.size)
+                                  if self.map[i, j] != TileType.OCEAN]
+                
+            if not start_candidates:
+                print("Warning: Could not find starting point for river")
                 continue
                 
-            # Choose random starting point
+            # Randomly select starting point
             current = random.choice(start_candidates)
             river_path = [current]
+            river_length = 0
+            max_river_length = self.size // 2  # Maximum river length
             
-            # Create river flowing downhill with some randomness
-            while True:
+            # Flow river downward
+            while river_length < max_river_length:
                 i, j = current
                 neighbors = []
                 
-                # Check adjacent cells (including diagonal for more natural flow)
+                # Check adjacent cells (including diagonal directions)
                 for di in [-1, 0, 1]:
                     for dj in [-1, 0, 1]:
                         if di == 0 and dj == 0:
                             continue
-                        
+                            
                         ni, nj = i + di, j + dj
                         if 0 <= ni < self.size and 0 <= nj < self.size:
-                            # Prioritize straight flow slightly by giving direct neighbors a small bonus
-                            straight_flow_bonus = 0.0
-                            if (di == 0 or dj == 0):
-                                straight_flow_bonus = 0.05
+                            # Prioritize horizontal or downward movement (weighted)
+                            flow_weight = 0.0
+                            if di >= 0:  # Tendency to flow downward or horizontally
+                                flow_weight -= 0.1
                                 
-                            neighbors.append((ni, nj, height_map[ni, nj] - straight_flow_bonus))
+                            # Consider previous direction to favor straight flow (if exists)
+                            if len(river_path) > 1:
+                                prev_i, prev_j = river_path[-2]
+                                if (di == i - prev_i and dj == j - prev_j):  # Same direction
+                                    flow_weight -= 0.2
+                                    
+                            # Flow toward lower elevations
+                            if ni < self.size and nj < self.size:
+                                neighbors.append((ni, nj, height_map[ni, nj] + flow_weight))
                 
-                # Find lower neighbors
-                lower_neighbors = [(ni, nj, h) for ni, nj, h in neighbors 
-                                  if h < height_map[i, j]]
+                # Find the lowest cell (prioritize existing rivers)
+                neighbors.sort(key=lambda x: x[2])  # Sort by height
                 
-                # Stop if no lower neighbors or reached ocean
-                if not lower_neighbors or self.map[i, j] == TileType.OCEAN:
+                # Find next point
+                next_pos_found = False
+                for ni, nj, _ in neighbors:
+                    if (ni, nj) not in river_path:  # Don't merge with existing river path
+                        if self.map[ni, nj] != TileType.OCEAN:  # Don't flow into ocean
+                            current = (ni, nj)
+                            river_path.append(current)
+                            river_length += 1
+                            next_pos_found = True
+                            break
+                
+                # End if no next point found
+                if not next_pos_found or self.map[i, j] == TileType.OCEAN:
                     break
-                
-                # Choose lowest neighbor with some randomness to create meandering
-                if random.random() < 0.8:  # 80% chance to follow lowest path
-                    next_i, next_j, _ = min(lower_neighbors, key=lambda x: x[2])
-                else:
-                    # Sometimes choose a random lower neighbor for natural meandering
-                    next_i, next_j, _ = random.choice(lower_neighbors)
-                    
-                current = (next_i, next_j)
-                river_path.append(current)
             
-            # Apply river to map with varying width
-            main_path = set(river_path)
-            for i, j in river_path:
-                if self.map[i, j] != TileType.OCEAN:
-                    self.map[i, j] = TileType.RIVER
-                    
-                    # Add river width (vary width based on position in river)
-                    # Rivers get wider as they flow downstream
-                    pos_ratio = river_path.index((i, j)) / max(1, len(river_path))
-                    width_chance = 0.1 + pos_ratio * 0.4  # 10% at source, up to 50% at end
-                    
-                    # Maybe add width to the river
-                    for di in [-1, 0, 1]:
-                        for dj in [-1, 0, 1]:
-                            if di == 0 and dj == 0:
-                                continue
-                                
+            # Apply river if length is sufficient
+            min_river_length = 5  # Minimum river length
+            if river_length >= min_river_length:
+                # Apply river to map (with width)
+                for i, j in river_path:
+                    if self.map[i, j] != TileType.OCEAN:
+                        self.map[i, j] = TileType.RIVER
+                        
+                        # 20% chance to increase river width
+                        if random.random() < 0.2:
+                            di, dj = random.choice([(-1, 0), (1, 0), (0, -1), (0, 1)])
                             ni, nj = i + di, j + dj
-                            # Only widen river if not already part of main path and with decreasing probability
-                            if ((ni, nj) not in main_path and 
-                                0 <= ni < self.size and 
-                                0 <= nj < self.size and 
-                                self.map[ni, nj] != TileType.OCEAN and
-                                random.random() < width_chance):
-                                self.map[ni, nj] = TileType.RIVER
+                            if 0 <= ni < self.size and 0 <= nj < self.size:
+                                if self.map[ni, nj] != TileType.OCEAN and self.map[ni, nj] != TileType.RIVER:
+                                    self.map[ni, nj] = TileType.RIVER
+                
+                rivers_created += 1
+                print(f"Created river #{rivers_created} - {river_length} tiles")
+        
+        # If still not enough rivers, force create one
+        if rivers_created == 0:
+            print("Failed to naturally generate rivers. Forcing river creation...")
+            self._force_create_river()
     
+    def _force_create_river(self):
+        """Force create a river (fallback for worst case)"""
+        # Create a straight river near the center of the island
+        center = self.size // 2
+        width = self.size // 20  # River width
+        
+        start_i = center - self.size // 4
+        end_i = center + self.size // 4
+        
+        for i in range(start_i, end_i):
+            for j in range(center - width, center + width):
+                if 0 <= i < self.size and 0 <= j < self.size:
+                    if self.map[i, j] != TileType.OCEAN:
+                        self.map[i, j] = TileType.RIVER
+        
+        print(f"Forcibly created river - {(end_i - start_i) * (width * 2)} tiles")
+
     def _initialize_pygame(self):
         """Initialize PyGame"""
         pygame.init()

@@ -1,0 +1,43 @@
+[gd_scene load_steps=7 format=3 uid="uid://b0l13vbs1vl83"]
+
+[ext_resource type="Texture2D" uid="uid://u5k4ah6h685u" path="res://assets/img/object/ground.png" id="1_itxqv"]
+[ext_resource type="Script" uid="uid://w83kxaa3s7pb" path="res://scene/main.gd" id="1_wp4xf"]
+[ext_resource type="PackedScene" uid="uid://cmw8sg4pdmj3t" path="res://component/player.tscn" id="2_v0l8b"]
+[ext_resource type="Texture2D" uid="uid://1r1b1c86pky3" path="res://assets/img/tile.png" id="4_brvut"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_0ha60"]
+texture = ExtResource("4_brvut")
+texture_region_size = Vector2i(50, 50)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_4j5ol"]
+tile_size = Vector2i(50, 50)
+sources/1 = SubResource("TileSetAtlasSource_0ha60")
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_wp4xf")
+
+[node name="Ground" type="Sprite2D" parent="."]
+position = Vector2(570, 443)
+scale = Vector2(23.4325, 13.345)
+texture = ExtResource("1_itxqv")
+
+[node name="Player" parent="." instance=ExtResource("2_v0l8b")]
+position = Vector2(2, 33)
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+position = Vector2(-2, -33)
+
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
+tile_set = SubResource("TileSet_4j5ol")

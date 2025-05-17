@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://cmw8sg4pdmj3t"]
+
+[ext_resource type="Texture2D" uid="uid://b467peksih7vf" path="res://assets/img/bot.png" id="1_kdf4k"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ju346"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_kdf4k")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="Player" type="Node2D"]
+y_sort_enabled = true
+scale = Vector2(0.5, 0.5)
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(1, -52)
+sprite_frames = SubResource("SpriteFrames_ju346")

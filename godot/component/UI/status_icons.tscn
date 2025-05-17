@@ -43,26 +43,21 @@ script = ExtResource("1_6u1qm")
 
 [node name="Icon1" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_8amel")
-frame = 2
-frame_progress = 0.709755
 
 [node name="Icon2" type="AnimatedSprite2D" parent="."]
 position = Vector2(48, 0)
 sprite_frames = SubResource("SpriteFrames_8amel")
-frame = 4
-frame_progress = 0.211273
+frame = 1
 
 [node name="Icon3" type="AnimatedSprite2D" parent="."]
 position = Vector2(98, 0)
 sprite_frames = SubResource("SpriteFrames_8amel")
-frame = 4
-frame_progress = 0.211273
+frame = 2
 
 [node name="Icon4" type="AnimatedSprite2D" parent="."]
 position = Vector2(148, 0)
 sprite_frames = SubResource("SpriteFrames_8amel")
-frame = 4
-frame_progress = 0.211273
+frame = 3
 
 [node name="Icon5" type="AnimatedSprite2D" parent="."]
 position = Vector2(198, 0)

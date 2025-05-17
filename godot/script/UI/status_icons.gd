@@ -22,5 +22,6 @@ func _ready():
 func update_icon(phase:int):
 	for i in range(IconList.size()):
 		IconList[i].visible = false;
-	for i in range(phase):
-		IconList[i].visible = true;
+	if(phase >= 0):
+		for i in range(phase):
+			IconList[i].visible = true;

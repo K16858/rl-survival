@@ -1,10 +1,15 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import random
 
 app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
-def root_ret():
+def allive():
+    return "allive"
+
+@app.route('/reasoning', methods=['POST'])
+def reasoning():
+    print(request.json)
     data = {
         "id" : 1,
         "next": {

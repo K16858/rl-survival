@@ -3,6 +3,9 @@ extends Node2D
 
 var world_object_array:Array = []
 
+var day:int = 0;
+var time:float = 0;
+
 const WORLD_MAX_X:int = 100;
 const WORLD_MAX_Y:int = 100;
 

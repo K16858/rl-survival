@@ -60,7 +60,7 @@ func _ready():
 	delta_count = 0;
 
 func _process(delta):
-	#一秒毎にステータスのUIを動機
+	#一秒毎にステータスのUIを同期
 	delta_count += delta;
 	if(delta_count > 1):
 		delta_count -= 1;

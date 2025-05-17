@@ -16,7 +16,6 @@ func _ready():
 
 
 func _on_player_update_status(status):
-	
 	for i in range(status.size()):
 		var temp:float = status[i];
 		var count:int = -1; 

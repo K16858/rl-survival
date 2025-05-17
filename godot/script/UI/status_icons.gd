@@ -2,7 +2,8 @@ class_name  StatusIcons
 
 extends Node2D
 
-@export var kind:int;
+@export var kind:int
+@export var COST:int = 10;
 
 @onready var IconList:Array[AnimatedSprite2D] = [
 	$"Icon1",
@@ -11,6 +12,8 @@ extends Node2D
 	$"Icon4",
 	$"Icon5"
 ]
+
+@onready var InfoNode:Info = $"../../../Info"
 
 
 func _ready():
@@ -36,4 +39,5 @@ func _on_clickable_area_mouse_exited():
 
 func _on_clickable_area_input_event(viewport, event, shape_idx):
 	if Input.is_action_just_released("click"):
-		print("OK")
+		if(InfoNode.power >= COST):
+			pass

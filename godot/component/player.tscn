@@ -1,5 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://cmw8sg4pdmj3t"]
+[gd_scene load_steps=4 format=3 uid="uid://cmw8sg4pdmj3t"]
 
+[ext_resource type="Script" uid="uid://brnxr8360u01u" path="res://script/player/player.gd" id="1_ju346"]
 [ext_resource type="Texture2D" uid="uid://b467peksih7vf" path="res://assets/img/bot.png" id="1_kdf4k"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_ju346"]
@@ -16,6 +17,7 @@ animations = [{
 [node name="Player" type="Node2D"]
 y_sort_enabled = true
 scale = Vector2(0.5, 0.5)
+script = ExtResource("1_ju346")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(1, -52)

@@ -6,6 +6,15 @@ extends Node2D
 @export var server_url: String = "http://127.0.0.1:8000/reasoning"
 @export var map: TileMapLayer
 
+@export var resource_baseline: float = 0.7
+
+@export var hp_change_multi: float = 0.3
+
+@export var satiety_use_cycle: int = 50
+@export var nthirsty_use_cycle: int = 30
+@export var ndrowsiness_use_cycle: int = 100
+
+
 signal  update_status(status:Array[float])
 
 # 体力
@@ -18,8 +27,8 @@ var nthirsty: Resource_t
 var body_temperature: Resource_t
 # スタミナ
 var stamina: Resource_t
-# 眠気
-var drowsiness: Resource_t
+# 眠気の逆
+var ndrowsiness: Resource_t
 # ストレス
 var stress: Resource_t
 
@@ -37,20 +46,13 @@ func _ready():
 	$HTTPRequest.request_completed.connect(_on_request_completed)
 	
 	# プロパティ初期化
-	hp = Resource_t.new()
-	hp._init()
-	satiety = Resource_t.new()
-	satiety._init()
-	nthirsty = Resource_t.new()
-	nthirsty._init()
-	body_temperature = Resource_t.new()
-	body_temperature._init()
-	stamina = Resource_t.new()
-	stamina._init()
-	drowsiness = Resource_t.new()
-	drowsiness._init()
-	stress = Resource_t.new()
-	stress._init()
+	hp = Resource_t.newres(1)
+	satiety = Resource_t.newres(1)
+	nthirsty = Resource_t.newres(1)
+	body_temperature = Resource_t.newres(1)
+	stamina = Resource_t.newres(1)
+	ndrowsiness = Resource_t.newres(1)
+	stress = Resource_t.newres(0)
 	# その他初期化
 	$AnimatedSprite2D.play("default")
 	
@@ -64,7 +66,25 @@ func _process(delta):
 	delta_count += delta;
 	if(delta_count > 1):
 		delta_count -= 1;
-		update_status.emit([hp.getres(),satiety.getres(),nthirsty.getres(),body_temperature.getres(),stamina.getres(),drowsiness.getres(),stress.getres()]);
+		update_status.emit([hp.getres(),satiety.getres(),nthirsty.getres(),body_temperature.getres(),stamina.getres(),ndrowsiness.getres(),stress.getres()]);
+		
+		# 各ステータスの変動
+		# 時間経過ステータス
+		satiety.subres(1./satiety_use_cycle)
+		nthirsty.subres(1./nthirsty_use_cycle)
+		ndrowsiness.subres(1./ndrowsiness_use_cycle)
+		
+		# 気温処理
+		# TODO
+		
+		# 体力変動fnc
+		var sub = func(x: float):
+			return x - resource_baseline
+		var stat_min = [satiety.getres(), nthirsty.getres(), ndrowsiness.getres(), (1-stress.getres())].map(sub).min()
+		print(stat_min)
+		
+		if hp.subres(-stat_min * hp_change_multi):
+			print("game over !!!!!!!!!!!!!!!!!")
 	
 
 # タイルマップ上の移動操作
@@ -88,7 +108,7 @@ func _send_request():
 		"nthirsty": nthirsty.getres(),
 		"body_temperature": body_temperature.getres(),
 		"stamina": stamina.getres(),
-		"drowsiness": drowsiness.getres(),
+		"ndrowsiness": ndrowsiness.getres(),
 		"stress": stress.getres()
 	}
 	var error = $HTTPRequest.request(server_url, header, HTTPClient.METHOD_POST, JSON.stringify(data))

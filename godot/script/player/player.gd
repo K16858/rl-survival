@@ -95,9 +95,16 @@ func _move(x: int, y: int, rel: bool = true):
 	if rel:
 		var distination_pos = map.map_to_local(Vector2(x, y))
 		var distance = distination_pos.distance_to(position)
+		var direction = position.direction_to(distination_pos);
 		var tween = self.create_tween()
 		tween.tween_property(self, "position", distination_pos, distance / speed)
 		tween.tween_callback(_send_request)
+		
+		if(direction.x>=0):
+			$AnimatedSprite2D.flip_h = false;
+		else:
+			$AnimatedSprite2D.flip_h = true;
+		
 	else:
 		print("not yet impled non rel move")
 

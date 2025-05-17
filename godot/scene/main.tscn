@@ -1,10 +1,11 @@
-[gd_scene load_steps=11 format=4 uid="uid://b0l13vbs1vl83"]
+[gd_scene load_steps=12 format=4 uid="uid://b0l13vbs1vl83"]
 
 [ext_resource type="Script" uid="uid://w83kxaa3s7pb" path="res://scene/main.gd" id="1_wp4xf"]
 [ext_resource type="PackedScene" uid="uid://cmw8sg4pdmj3t" path="res://component/player.tscn" id="2_v0l8b"]
 [ext_resource type="TileSet" uid="uid://bd38kjdty6u2p" path="res://tilemap/MapTileSet.tres" id="2_wp4xf"]
 [ext_resource type="Script" uid="uid://bv7q1oc6meveo" path="res://script/UI/info.gd" id="4_4j5ol"]
 [ext_resource type="PackedScene" uid="uid://ccuuoy4o5fgbr" path="res://component/UI/status_icons.tscn" id="5_0ha60"]
+[ext_resource type="Script" uid="uid://dnmovij02v5af" path="res://script/UI/status.gd" id="5_p1hux"]
 [ext_resource type="Texture2D" uid="uid://cswo11um7elj7" path="res://assets/img/icon/power.png" id="6_4j5ol"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p1hux"]
@@ -71,6 +72,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Status" type="Node2D" parent="Player/Info"]
+script = ExtResource("5_p1hux")
 
 [node name="Panel" type="Panel" parent="Player/Info/Status"]
 offset_left = -478.0
@@ -144,4 +146,5 @@ theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_b5f6u")
 text = "Info"
 
+[connection signal="update_status" from="Player" to="Player/Info/Status" method="_on_player_update_status"]
 [connection signal="pressed" from="Player/ShowStatus" to="Player/Info" method="_on_show_status_pressed"]

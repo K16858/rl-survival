@@ -1,3 +1,5 @@
+class_name  StatusIcons
+
 extends Node2D
 
 @export var kind:int;
@@ -15,3 +17,10 @@ func _ready():
 	for i in IconList:
 		i.frame = kind
 		
+
+
+func update_icon(phase:int):
+	for i in range(IconList.size()):
+		IconList[i].visible = false;
+	for i in range(phase):
+		IconList[i].visible = true;

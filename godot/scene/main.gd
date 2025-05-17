@@ -1,5 +1,6 @@
 extends Node2D
 
+
 var world_object_array:Array = []
 
 const WORLD_MAX_X:int = 100;

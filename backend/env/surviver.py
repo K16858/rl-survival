@@ -3,6 +3,7 @@ from typing import Dict, List, Any, Tuple
 import numpy as np
 import random
 from item import Item, ItemType
+from env.tile import TileType
 
 class Survivor:
     """Survivor class - represents a person surviving on a deserted island"""
@@ -336,8 +337,6 @@ class Survivor:
         self.stamina -= 0.2
         # Reduce stress (satisfaction)
         self.stress = max(0.0, self.stress - 0.1)
-        # Improve crafting skill
-        self.skills["crafting"] = min(1.0, self.skills["crafting"] + 0.01)
         
         # Add result item
         success = self.add_item(result_item)
@@ -439,6 +438,182 @@ class Survivor:
         # Default action
         return "Observing the surroundings"
     
+    def craft_tool(self) -> bool:
+        """Craft a tool from inventory items
+        
+        Returns:
+            bool: Success or failure
+        """
+        from item import ItemType, Item
+        
+        # Define some common tool recipes
+        recipes = {
+            "Stone Axe": {
+                "materials": {ItemType.STONE: 2, ItemType.WOOD: 1},
+                "result": Item(ItemType.TOOL, "Stone Axe", 2.0, 0.8, {})
+            },
+            "Fishing Rod": {
+                "materials": {ItemType.WOOD: 2, ItemType.FIBER: 1},
+                "result": Item(ItemType.TOOL, "Fishing Rod", 1.0, 0.7, {})
+            },
+            "Torch": {
+                "materials": {ItemType.WOOD: 1, ItemType.FIBER: 1},
+                "result": Item(ItemType.TOOL, "Torch", 0.5, 0.5, {})
+            }
+        }
+        
+        # Check available materials
+        available_materials = {}
+        for item in self.inventory:
+            if item.item_type in [ItemType.STONE, ItemType.WOOD, ItemType.FIBER]:
+                available_materials[item.item_type] = available_materials.get(item.item_type, 0) + 1
+        
+        # Try to craft each tool by priority
+        for tool_name, recipe_data in recipes.items():
+            materials = recipe_data["materials"]
+            result_item = recipe_data["result"]
+            
+            # Check if we have enough materials
+            can_craft = True
+            for item_type, count in materials.items():
+                if available_materials.get(item_type, 0) < count:
+                    can_craft = False
+                    break
+                    
+            if can_craft:
+                return self.craft_item(materials, result_item)
+        
+        return False  # Couldn't craft any tool
+    
+    def move_to_water_and_drink(self) -> bool:
+        """Move to visible water tile and drink
+        
+        Returns:
+            bool: Success or failure
+        """
+        if not self.environment:
+            return False
+            
+        from env.env import TileType
+        
+        # Get visible water tiles
+        visible_tiles = self.environment.get_visible_tiles(self.environment.agent_pos)
+        water_tiles = [pos for pos, tile_type in visible_tiles.items() if tile_type == TileType.RIVER]
+        
+        if not water_tiles:
+            return False  # No water tile visible
+            
+        # Find nearest water tile
+        agent_pos = np.array(self.environment.agent_pos)
+        distances = [np.linalg.norm(np.array(pos) - agent_pos) for pos in water_tiles]
+        nearest_water = water_tiles[np.argmin(distances)]
+        
+        # Move to water tile
+        self.environment.move_agent_to(nearest_water)
+        
+        # Consume stamina for movement
+        distance = np.linalg.norm(np.array(nearest_water) - agent_pos)
+        self.stamina -= 0.05 * distance
+        
+        # Drink from river
+        self.hydration += 0.4
+        
+        # Small chance of getting sick from river water
+        if random.random() < 0.1:
+            self.health -= 0.05
+            
+        self._clamp_stats()
+        return True
+        
+    def collect_nearest_item(self) -> bool:
+        """Collect the nearest visible item
+        
+        Returns:
+            bool: Success or failure
+        """
+        if not self.environment:
+            return False
+            
+        # Get visible items
+        visible_items = self.environment.get_visible_items(self.environment.agent_pos)
+        
+        if not visible_items:
+            return False  # No items visible
+            
+        # Find nearest item
+        agent_pos = np.array(self.environment.agent_pos)
+        item_positions = [item_info['position'] for item_info in visible_items]
+        distances = [np.linalg.norm(np.array(pos) - agent_pos) for pos in item_positions]
+        nearest_idx = np.argmin(distances)
+        nearest_item_info = visible_items[nearest_idx]
+        
+        # Move to item position
+        self.environment.move_agent_to(nearest_item_info['position'])
+        
+        # Consume stamina for movement
+        distance = np.linalg.norm(np.array(nearest_item_info['position']) - agent_pos)
+        self.stamina -= 0.05 * distance
+        
+        # Try to pick up the item
+        item = nearest_item_info['item']
+        success = self.add_item(item)
+        
+        # If successful, remove item from environment
+        if success:
+            self.environment.remove_item_at(nearest_item_info['position'])
+        
+        self._clamp_stats()
+        return success
+    
+    def move_to_tent_and_rest(self) -> bool:
+        """Move to visible tent and rest
+        
+        Returns:
+            bool: Success or failure
+        """
+        if not self.environment:
+            return False
+            
+        from env.env import TileType
+        
+        # Get visible tent tiles
+        visible_tiles = self.environment.get_visible_tiles(self.environment.agent_pos)
+        tent_tiles = [pos for pos, tile_type in visible_tiles.items() if tile_type == TileType.TENT]
+        
+        if not tent_tiles:
+            return False  # No tent visible
+            
+        # Find nearest tent
+        agent_pos = np.array(self.environment.agent_pos)
+        distances = [np.linalg.norm(np.array(pos) - agent_pos) for pos in tent_tiles]
+        nearest_tent = tent_tiles[np.argmin(distances)]
+        
+        # Move to tent
+        self.environment.move_agent_to(nearest_tent)
+        
+        # Consume stamina for movement
+        distance = np.linalg.norm(np.array(nearest_tent) - agent_pos)
+        self.stamina -= 0.05 * distance
+        
+        # Rest in tent (better rest efficiency than normal sleep)
+        rest_hours = 2.0
+        self.rest += 0.15 * rest_hours
+        self.stamina += 0.12 * rest_hours
+        self.stress -= 0.08 * rest_hours
+        
+        # Tent provides better temperature regulation
+        if self.temperature < 0.4:  # Too cold
+            self.temperature += 0.1
+        elif self.temperature > 0.6:  # Too hot
+            self.temperature -= 0.1
+            
+        # Natural decrease in satiety and hydration during rest
+        self.satiety -= 0.01 * rest_hours
+        self.hydration -= 0.01 * rest_hours
+        
+        self._clamp_stats()
+        return True
+        
     def get_action_space(self) -> Dict[str, bool]:
         """Get possible actions based on current state
         
@@ -453,13 +628,39 @@ class Survivor:
                       for item in self.inventory)
         can_sleep = self.stress <= 0.8
         
+        has_craft_materials = False
+        material_count = 0
+        for item in self.inventory:
+            if item.item_type in [ItemType.STONE, ItemType.WOOD, ItemType.FIBER]:
+                material_count += 1
+                if material_count >= 2:
+                    has_craft_materials = True
+                    break
+        
+        # Check if any water/tent/item is visible
+        water_visible = False
+        tent_visible = False
+        item_visible = False
+        
+        if self.environment:
+            # Check for visible water tiles
+            visible_tiles = self.environment.get_visible_tiles(self.environment.agent_pos)
+            water_visible = any(tile == TileType.RIVER for tile in visible_tiles.values())
+            tent_visible = any(tile == TileType.TENT for tile in visible_tiles.values())
+            item_visible = len(self.environment.get_visible_items(self.environment.agent_pos)) > 0
+        
         return {
             "eat": can_eat and self.satiety < 0.7,
             "drink": can_drink and self.hydration < 0.7,
             "heal": can_heal and self.health < 0.7,
             "sleep": can_sleep and (self.rest < 0.5 or self.stamina < 0.3),
             "explore": self.stamina > 0.3,
-            "craft": self.stamina > 0.2 and len(self.inventory) > 1
+            "craft": self.stamina > 0.2 and len(self.inventory) > 1,
+            # New reinforcement learning actions
+            "move_to_water_and_drink": water_visible and self.hydration < 0.8 and self.stamina > 0.2,
+            "collect_nearest_item": item_visible and len(self.inventory) < self.max_inventory_size and self.stamina > 0.2,
+            "craft_tool": has_craft_materials and self.stamina > 0.2,
+            "move_to_tent_and_rest": tent_visible and (self.rest < 0.6 or self.stamina < 0.4) and self.stamina > 0.1
         }
             
     def _check_item_index(self, index: int) -> bool:
@@ -509,50 +710,3 @@ class Survivor:
         status.append(f"Stress: {self.stress:.2f}")
         
         return "\n".join(status)
-
-
-# Example usage
-if __name__ == "__main__":
-    # Sample item definitions
-    apple = Item(
-        ItemType.FRUIT, "Apple", 0.2, 1.0, 
-        {"health": 0.05, "satiety": 0.2, "hydration": 0.1}
-    )
-    
-    water_bottle = Item(
-        ItemType.WATER, "Water Bottle", 0.5, 1.0,
-        {"hydration": 0.5}
-    )
-    
-    stone_axe = Item(
-        ItemType.TOOL, "Stone Axe", 2.0, 1.0,
-        {}
-    )
-    
-    # Create and test survivor
-    player = Survivor("Test Player")
-    print(player)
-    
-    # Pick up items
-    player.add_item(apple)
-    player.add_item(water_bottle)
-    player.add_item(stone_axe)
-    print("\nAfter picking up items:")
-    print("\n".join(player.get_inventory_report()))
-    
-    # Simulate time passing
-    print("\nAfter 3 hours:")
-    player.update(3.0)
-    print(player)
-    
-    # Eat food
-    print("\nAfter eating apple:")
-    player.eat(0)  # Use apple
-    print(player)
-    print("\n".join(player.get_inventory_report()))
-    
-    # Drink water
-    print("\nAfter drinking water:")
-    player.drink(0)  # Use water (apple was consumed so water is now at index 0)
-    print(player)
-    print("\n".join(player.get_inventory_report()))

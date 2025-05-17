@@ -1,7 +1,7 @@
 import numpy as np
 
 class PPOMemory:
-    """PPOのためのメモリバッファ"""
+    """Memory buffer for PPO"""
     
     def __init__(self, batch_size: int):
         self.visions = []
@@ -14,7 +14,7 @@ class PPOMemory:
         self.batch_size = batch_size
     
     def store(self, vision, status, action, prob, val, reward, done):
-        """エピソードのデータを保存"""
+        """Store episode data"""
         self.visions.append(vision)
         self.statuses.append(status)
         self.actions.append(action)
@@ -24,7 +24,7 @@ class PPOMemory:
         self.dones.append(done)
     
     def clear(self):
-        """メモリを空にする"""
+        """Clear the memory"""
         self.visions = []
         self.statuses = []
         self.actions = []
@@ -34,7 +34,7 @@ class PPOMemory:
         self.dones = []
     
     def generate_batches(self):
-        """バッチ生成のためのインデックスを返す"""
+        """Return indices for batch generation"""
         n_states = len(self.visions)
         batch_start = np.arange(0, n_states, self.batch_size)
         indices = np.arange(n_states, dtype=np.int64)

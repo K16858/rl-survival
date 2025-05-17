@@ -7,7 +7,7 @@ from collections import deque
 import matplotlib.pyplot as plt
 import argparse
 
-# 親ディレクトリをパスに追加してモジュールをインポート
+# Add parent directory to path for module import
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from env.env import IslandEnvironment, TileType
@@ -15,24 +15,24 @@ from agent.ppo_agent import PPOAgent
 from agent.utils import plot_training_progress, create_experiment_dir, save_hyperparameters
 
 def preprocess_vision(vision):
-    """ビジョン配列をCNN入力用に正規化"""
-    # 0-1に正規化
+    """Normalize vision array for CNN input"""
+    # Normalize to 0-1
     return vision.astype(np.float32) / max(1, vision.max())
 
 def preprocess_status(obs, agent_pos):
-    """状態特徴量の抽出と正規化"""
-    # 現在位置のタイルタイプを取得
+    """Extract and normalize state features"""
+    # Get tile type at current position
     current_tile = obs['current_tile']
     
-    # タイルタイプをOne-hotエンコーディング
-    tile_type_onehot = np.zeros(7)  # 7つのタイルタイプを想定
+    # One-hot encoding for tile type
+    tile_type_onehot = np.zeros(7)  # Assume 7 tile types
     if current_tile < 7:
         tile_type_onehot[current_tile] = 1.0
     
-    # 位置の正規化
-    norm_pos = np.array(agent_pos) / 500.0  # マップサイズ最大500を想定
+    # Normalize position
+    norm_pos = np.array(agent_pos) / 500.0  # Assume max map size 500
     
-    # 特徴量の結合
+    # Concatenate features
     status = np.concatenate([norm_pos, tile_type_onehot])
     
     return status
@@ -54,37 +54,37 @@ def train_ppo(
     experiment_name=None
 ):
     """
-    PPOエージェントを島環境で訓練する
+    Train PPO agent in island environment
     
     Args:
-        env_size: 島マップのサイズ
-        n_epochs: 訓練エポック数
-        n_steps: 各エポックのステップ数
-        model_dir: モデルを保存するディレクトリ
-        log_interval: 進捗をログする間隔
-        gamma: 割引率
-        gae_lambda: GAE λパラメータ
-        policy_clip: 方策クリッピングパラメータ
-        batch_size: バッチサイズ
-        n_updates: 各バッチで更新を繰り返す回数
-        lr: 学習率
-        seed: 乱数シード
-        render: 環境を描画するかどうか
-        experiment_name: 実験の名前（Noneの場合はタイムスタンプ）
+        env_size: Size of the island map
+        n_epochs: Number of training epochs
+        n_steps: Steps per epoch
+        model_dir: Directory to save models
+        log_interval: Interval for logging progress
+        gamma: Discount factor
+        gae_lambda: GAE lambda parameter
+        policy_clip: Policy clipping parameter
+        batch_size: Batch size
+        n_updates: Number of updates per batch
+        lr: Learning rate
+        seed: Random seed
+        render: Whether to render environment
+        experiment_name: Name of experiment (timestamp if None)
         
     Returns:
-        scores: 各エポックのスコアリスト
+        scores: List of scores per epoch
     """
-    # 実験ディレクトリの作成
+    # Create experiment directory
     if experiment_name:
         exp_dir = os.path.join(model_dir, experiment_name)
     else:
         exp_dir = create_experiment_dir(model_dir)
     
     os.makedirs(exp_dir, exist_ok=True)
-    print(f"実験ディレクトリ: {exp_dir}")
+    print(f"Experiment directory: {exp_dir}")
     
-    # ハイパーパラメータの保存
+    # Save hyperparameters
     hyperparams = {
         'env_size': env_size,
         'n_epochs': n_epochs,
@@ -99,22 +99,22 @@ def train_ppo(
     }
     save_hyperparameters(hyperparams, os.path.join(exp_dir, 'hyperparams.txt'))
     
-    # 環境の作成
+    # Create environment
     env = IslandEnvironment(size=env_size, seed=seed)
     
-    # ビジョンフィールドの形状
-    vision_shape = (11, 11)  # IslandEnvironmentの_get_observationから
+    # Vision field shape
+    vision_shape = (11, 11)  # From IslandEnvironment._get_observation
     
-    # ステータスサイズの取得
+    # Get status size
     obs = env.reset()
     vision = obs['vision']
     status = preprocess_status(obs, obs['position'])
     status_size = len(status)
     
-    # アクション数
+    # Number of actions
     n_actions = len(env.action_space)
     
-    # エージェントの作成
+    # Create agent
     agent = PPOAgent(
         vision_shape=vision_shape,
         status_size=status_size,
@@ -128,39 +128,39 @@ def train_ppo(
         seed=seed
     )
     
-    # スコア記録
+    # Score records
     best_score = float('-inf')
     scores = []
-    scores_window = deque(maxlen=100)  # 直近100エポックのスコア
+    scores_window = deque(maxlen=100)  # Scores for last 100 epochs
     
-    # 訓練ループ
+    # Training loop
     for epoch in range(1, n_epochs+1):
         obs = env.reset()
         vision = preprocess_vision(obs['vision'])
         status = preprocess_status(obs, obs['position'])
         score = 0
         
-        # 1エポック分のステップを実行
+        # Run steps for one epoch
         for step in range(n_steps):
-            # 行動選択
+            # Select action
             action, log_prob, value = agent.act(vision, status)
             
-            # 行動実行
+            # Take action
             next_obs, reward, done, _ = env.step(action)
             
-            # 前処理
+            # Preprocess
             next_vision = preprocess_vision(next_obs['vision'])
             next_status = preprocess_status(next_obs, next_obs['position'])
             
-            # データをメモリに保存
+            # Save data to memory
             agent.remember(vision, status, action, log_prob, value, reward, done)
             
-            # 状態の更新
+            # Update state
             vision = next_vision
             status = next_status
             score += reward
             
-            # レンダリング
+            # Rendering
             if render:
                 env.render()
                 time.sleep(0.01)
@@ -171,45 +171,45 @@ def train_ppo(
             if done:
                 break
         
-        # エポック終了後に学習実行
+        # Learn after each epoch
         agent.learn()
         
-        # スコア記録
+        # Record score
         scores_window.append(score)
         scores.append(score)
         
-        # 進捗表示
+        # Show progress
         if epoch % log_interval == 0:
             avg_score = np.mean(scores_window)
             print(f'Epoch {epoch}\tAverage Score: {avg_score:.2f}')
             
-            # スコア推移プロット
+            # Plot training progress
             plot_training_progress(
                 scores, 
                 window_size=min(100, len(scores)),
                 save_path=os.path.join(exp_dir, f'scores_epoch_{epoch}.png')
             )
         
-        # ベストモデルの保存
+        # Save best model
         if epoch % 10 == 0 or np.mean(scores_window) > best_score:
             if np.mean(scores_window) > best_score:
                 best_score = np.mean(scores_window)
                 agent.save(os.path.join(exp_dir, 'ppo_best.pth'))
-                print(f"新しいベストスコア: {best_score:.2f}, モデルを保存しました。")
+                print(f"New best score: {best_score:.2f}, model saved.")
             
-            # 定期保存
+            # Periodic save
             if epoch % 10 == 0:
                 agent.save(os.path.join(exp_dir, f'ppo_epoch_{epoch}.pth'))
     
-    # 最終モデルの保存
+    # Save final model
     agent.save(os.path.join(exp_dir, 'ppo_final.pth'))
     
-    # 最終スコアプロットの保存
+    # Save final score plot
     plt.figure(figsize=(10, 6))
     plt.plot(np.arange(len(scores)), scores)
     plt.plot(np.arange(len(scores)), 
              [np.mean(scores[max(0, i-100):i+1]) for i in range(len(scores))],
-             label='100エポック移動平均')
+             label='100-epoch moving average')
     plt.ylabel('Score')
     plt.xlabel('Epoch')
     plt.legend()
@@ -226,45 +226,45 @@ def test_ppo(
     fps=10
 ):
     """
-    訓練済みPPOエージェントのテスト
+    Test trained PPO agent
     
     Args:
-        model_path: テストするモデルのパス
-        env_size: 島マップのサイズ
-        n_episodes: テストエピソード数
-        max_steps: 1エピソードの最大ステップ数
-        render: 環境を描画するかどうか
-        fps: 描画のフレームレート
+        model_path: Path to model to test
+        env_size: Size of the island map
+        n_episodes: Number of test episodes
+        max_steps: Max steps per episode
+        render: Whether to render environment
+        fps: Rendering frame rate
     """
-    # 環境の作成
+    # Create environment
     env = IslandEnvironment(size=env_size, seed=42)
     
-    # ビジョンフィールドの形状
+    # Vision field shape
     vision_shape = (11, 11)
     
-    # ステータスサイズの取得
+    # Get status size
     obs = env.reset()
     vision = obs['vision']
     status = preprocess_status(obs, obs['position'])
     status_size = len(status)
     
-    # アクション数
+    # Number of actions
     n_actions = len(env.action_space)
     
-    # エージェントの作成
+    # Create agent
     agent = PPOAgent(
         vision_shape=vision_shape,
         status_size=status_size,
         n_actions=n_actions
     )
     
-    # モデルの読み込み
+    # Load model
     agent.load(model_path)
     
-    # スコア記録
+    # Score records
     scores = []
     
-    # テストループ
+    # Test loop
     for i_episode in range(1, n_episodes+1):
         obs = env.reset()
         vision = preprocess_vision(obs['vision'])
@@ -272,22 +272,22 @@ def test_ppo(
         score = 0
         
         for t in range(max_steps):
-            # レンダリング
+            # Rendering
             if render:
                 env.render()
                 time.sleep(1.0 / fps)
             
-            # 行動選択
+            # Select action
             action, _, _ = agent.act(vision, status)
             
-            # 行動実行
+            # Take action
             next_obs, reward, done, _ = env.step(action)
             
-            # 前処理
+            # Preprocess
             next_vision = preprocess_vision(next_obs['vision'])
             next_status = preprocess_status(next_obs, next_obs['position'])
             
-            # 状態の更新
+            # Update state
             vision = next_vision
             status = next_status
             score += reward
@@ -296,34 +296,34 @@ def test_ppo(
                 break
         
         scores.append(score)
-        print(f'エピソード {i_episode}\tスコア: {score:.2f}')
+        print(f'Episode {i_episode}\tScore: {score:.2f}')
     
-    # 環境終了
+    # Close environment
     env.close()
     
-    # 平均スコアの表示
+    # Show average score
     avg_score = np.mean(scores)
-    print(f'平均スコア: {avg_score:.2f}')
+    print(f'Average score: {avg_score:.2f}')
     return avg_score
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='島環境でPPOエージェントの訓練またはテストを行う')
+    parser = argparse.ArgumentParser(description='Train or test PPO agent in island environment')
     parser.add_argument('--mode', type=str, default='train', choices=['train', 'test'],
-                        help='モード: trainまたはtest')
+                        help='Mode: train or test')
     parser.add_argument('--env_size', type=int, default=200,
-                        help='島マップのサイズ')
+                        help='Size of the island map')
     parser.add_argument('--epochs', type=int, default=100,
-                        help='訓練エポック数')
+                        help='Number of training epochs')
     parser.add_argument('--steps', type=int, default=2048,
-                        help='1エポックのステップ数')
+                        help='Steps per epoch')
     parser.add_argument('--model_dir', type=str, default='models_ppo',
-                        help='モデルを保存/読み込むディレクトリ')
+                        help='Directory to save/load models')
     parser.add_argument('--model_path', type=str, default='ppo_final.pth',
-                        help='テスト時のモデルファイル名')
+                        help='Model file name for testing')
     parser.add_argument('--render', action='store_true',
-                        help='環境を描画する')
+                        help='Render environment')
     parser.add_argument('--experiment', type=str, default=None,
-                        help='実験名（ディレクトリ名）')
+                        help='Experiment name (directory)')
     
     args = parser.parse_args()
     

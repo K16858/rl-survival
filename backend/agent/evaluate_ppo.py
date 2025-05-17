@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import argparse
 import pygame
 
-# 親ディレクトリをパスに追加
+# Add parent directory to path
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from env.env import IslandEnvironment, TileType
@@ -25,39 +25,39 @@ def evaluate_ppo_agent(
     output_dir: str = 'ppo_evaluation_results'
 ):
     """
-    訓練済みPPOエージェントの評価と結果の保存
+    Evaluate a trained PPO agent and save results
     
     Args:
-        model_path: モデルファイルのパス
-        env_size: 環境のサイズ
-        n_episodes: 評価するエピソード数
-        max_steps: 1エピソードあたりの最大ステップ数
-        render: 環境を描画するかどうか
-        fps: 描画のフレームレート
-        output_dir: 評価結果を保存するディレクトリ
+        model_path: Path to the model file
+        env_size: Size of the environment
+        n_episodes: Number of episodes to evaluate
+        max_steps: Maximum steps per episode
+        render: Whether to render the environment
+        fps: Frame rate for rendering
+        output_dir: Directory to save evaluation results
     """
-    # 出力ディレクトリの作成
+    # Create output directory
     os.makedirs(output_dir, exist_ok=True)
     
-    # 環境の作成
+    # Create environment
     env = IslandEnvironment(size=env_size, seed=42, tile_size=8)
     
-    # ビジョンフィールドの形状
+    # Vision field shape
     vision_shape = (11, 11)
     
-    # ステータスサイズの取得
+    # Get status size
     obs = env.reset()
     vision = obs['vision']
     status = preprocess_status(obs, obs['position'])
     status_size = len(status)
     
-    # アクション数
+    # Number of actions
     n_actions = len(env.action_space)
     
-    # デバイスの設定
+    # Set up device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    # エージェントの作成
+    # Create agent
     agent = PPOAgent(
         vision_shape=vision_shape,
         status_size=status_size,
@@ -65,97 +65,97 @@ def evaluate_ppo_agent(
         device=device
     )
     
-    # モデルの読み込み
+    # Load model
     agent.load(model_path)
     
-    # 評価指標の記録
+    # Track metrics
     episode_scores = []
     episode_steps = []
     episode_tiles_visited = []
     episode_river_visits = []
     
-    # 複数エピソードで評価
+    # Evaluate over multiple episodes
     for i_episode in range(1, n_episodes + 1):
-        print(f"評価エピソード {i_episode}/{n_episodes} を開始")
+        print(f"Starting evaluation episode {i_episode}/{n_episodes}")
         
-        # 環境のリセット
+        # Reset environment
         obs = env.reset()
         vision = preprocess_vision(obs['vision'])
         status = preprocess_status(obs, obs['position'])
         score = 0
         
-        # このエピソードで訪問したタイルを記録
+        # Track tiles visited in this episode
         tiles_visited = set()
         river_visits = 0
         
-        # 軌跡の記録
+        # Record trajectory
         trajectory = [env.agent_pos]
         
-        # エピソード開始
+        # Start episode
         for t in range(1, max_steps + 1):
-            # 行動選択
+            # Select action
             action, _, _ = agent.act(vision, status)
             
-            # 行動実行
+            # Take action
             next_obs, reward, done, _ = env.step(action)
             
-            # 軌跡に現在位置を追加
+            # Add current position to trajectory
             trajectory.append(env.agent_pos)
             
-            # 評価指標の記録
+            # Record metrics
             score += reward
             i, j = map(int, env.agent_pos)
             tiles_visited.add((i, j))
             if env.map[i, j] == TileType.RIVER:
                 river_visits += 1
             
-            # 次の状態の前処理
+            # Preprocess next state
             next_vision = preprocess_vision(next_obs['vision'])
             next_status = preprocess_status(next_obs, next_obs['position'])
             
-            # 状態の更新
+            # Update state
             vision = next_vision
             status = next_status
             
-            # 描画
+            # Render
             if render:
                 env.render()
                 time.sleep(1.0 / fps)
             
-            # 100ステップごとにスクリーンショットを保存
+            # Save screenshot every 100 steps
             if t % 100 == 0 and render:
-                # スクリーンショットの保存（pygameが初期化されている場合）
+                # Save screenshot (if pygame is initialized)
                 if env.is_initialized:
                     pygame_img_path = os.path.join(output_dir, f"episode_{i_episode}_step_{t}.png")
                     pygame.image.save(env.screen, pygame_img_path)
             
-            # 進捗表示
+            # Print progress
             if t % 100 == 0:
-                print(f"ステップ {t}/{max_steps}, スコア: {score:.2f}")
+                print(f"Step {t}/{max_steps}, Score: {score:.2f}")
             
             if done:
                 break
         
-        # エピソード結果の記録
+        # Record episode results
         episode_scores.append(score)
         episode_steps.append(t)
         episode_tiles_visited.append(len(tiles_visited))
         episode_river_visits.append(river_visits)
         
-        # エピソードのサマリー表示
-        print(f"エピソード {i_episode} を {t} ステップで完了")
-        print(f"スコア: {score:.2f}")
-        print(f"ユニークな訪問タイル数: {len(tiles_visited)}")
-        print(f"川の訪問回数: {river_visits}")
+        # Print episode summary
+        print(f"Episode {i_episode} completed in {t} steps")
+        print(f"Score: {score:.2f}")
+        print(f"Unique tiles visited: {len(tiles_visited)}")
+        print(f"River visits: {river_visits}")
         print("------------------------------")
         
-        # エージェントの最終ビジョンを保存
+        # Save agent's final vision
         vision_path = os.path.join(output_dir, f"episode_{i_episode}_final_vision.png")
         plot_vision(obs['vision'], save_path=vision_path)
         
-        # エピソードの軌跡を描画
+        # Draw episode trajectory
         plt.figure(figsize=(10, 10))
-        # まずマップの背景を描画
+        # First draw the map background
         map_img = np.zeros((env_size, env_size, 3), dtype=np.uint8)
         for i in range(env_size):
             for j in range(env_size):
@@ -164,77 +164,77 @@ def evaluate_ppo_agent(
         
         plt.imshow(map_img)
         
-        # 軌跡を描画
+        # Draw trajectory
         traj_x = [pos[1] for pos in trajectory]
         traj_y = [pos[0] for pos in trajectory]
         plt.plot(traj_x, traj_y, 'r-', linewidth=2, alpha=0.7)
-        plt.plot(traj_x[0], traj_y[0], 'go', markersize=8)  # 開始位置
-        plt.plot(traj_x[-1], traj_y[-1], 'ro', markersize=8)  # 終了位置
+        plt.plot(traj_x[0], traj_y[0], 'go', markersize=8)  # Start position
+        plt.plot(traj_x[-1], traj_y[-1], 'ro', markersize=8)  # End position
         
-        plt.title(f"エピソード {i_episode} の軌跡")
+        plt.title(f"Episode {i_episode} Trajectory")
         plt.savefig(os.path.join(output_dir, f"episode_{i_episode}_trajectory.png"))
         plt.close()
     
-    # 環境を閉じる
+    # Close environment
     env.close()
     
-    # 統計情報の計算
+    # Calculate statistics
     avg_score = np.mean(episode_scores)
     avg_steps = np.mean(episode_steps)
     avg_tiles = np.mean(episode_tiles_visited)
     avg_river_visits = np.mean(episode_river_visits)
     
-    # サマリーの表示
-    print("===== 評価サマリー =====")
-    print(f"平均スコア: {avg_score:.2f}")
-    print(f"平均ステップ数: {avg_steps:.1f}")
-    print(f"平均ユニーク訪問タイル数: {avg_tiles:.1f}")
-    print(f"平均川訪問回数: {avg_river_visits:.2f}")
+    # Print summary
+    print("===== Evaluation Summary =====")
+    print(f"Average Score: {avg_score:.2f}")
+    print(f"Average Steps: {avg_steps:.1f}")
+    print(f"Average Unique Tiles Visited: {avg_tiles:.1f}")
+    print(f"Average River Visits: {avg_river_visits:.2f}")
     
-    # サマリーをファイルに保存
+    # Save summary to file
     with open(os.path.join(output_dir, "evaluation_summary.txt"), "w") as f:
-        f.write("===== 評価サマリー =====\n")
-        f.write(f"モデル: {model_path}\n")
-        f.write(f"環境サイズ: {env_size}\n")
-        f.write(f"エピソード数: {n_episodes}\n")
-        f.write(f"最大ステップ数: {max_steps}\n\n")
-        f.write(f"平均スコア: {avg_score:.2f}\n")
-        f.write(f"平均ステップ数: {avg_steps:.1f}\n")
-        f.write(f"平均ユニーク訪問タイル数: {avg_tiles:.1f}\n")
-        f.write(f"平均川訪問回数: {avg_river_visits:.2f}\n\n")
-        f.write("エピソード詳細:\n")
+        f.write("===== Evaluation Summary =====\n")
+        f.write(f"Model: {model_path}\n")
+        f.write(f"Environment Size: {env_size}\n")
+        f.write(f"Episodes: {n_episodes}\n")
+        f.write(f"Max Steps: {max_steps}\n\n")
+        f.write(f"Average Score: {avg_score:.2f}\n")
+        f.write(f"Average Steps: {avg_steps:.1f}\n")
+        f.write(f"Average Unique Tiles Visited: {avg_tiles:.1f}\n")
+        f.write(f"Average River Visits: {avg_river_visits:.2f}\n\n")
+        f.write("Episode details:\n")
         for i in range(n_episodes):
-            f.write(f"エピソード {i+1}: スコア={episode_scores[i]:.2f}, "
-                    f"ステップ数={episode_steps[i]}, "
-                    f"訪問タイル数={episode_tiles_visited[i]}, "
-                    f"川訪問回数={episode_river_visits[i]}\n")
+            f.write(f"Episode {i+1}: Score={episode_scores[i]:.2f}, "
+                    f"Steps={episode_steps[i]}, "
+                    f"Tiles={episode_tiles_visited[i]}, "
+                    f"River Visits={episode_river_visits[i]}\n")
     
-    # スコア分布の描画
+    # Plot score distribution
     plt.figure(figsize=(10, 6))
     plt.bar(range(1, n_episodes+1), episode_scores)
-    plt.xlabel('エピソード')
-    plt.ylabel('スコア')
-    plt.title('エピソードごとの評価スコア')
+    plt.xlabel('Episode')
+    plt.ylabel('Score')
+    plt.title('Evaluation Scores by Episode')
     plt.savefig(os.path.join(output_dir, "score_distribution.png"))
     
     return avg_score, avg_steps, avg_tiles, avg_river_visits
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='訓練済みPPOエージェントの評価')
+    parser = argparse.ArgumentParser(description='Evaluate a trained PPO agent')
     parser.add_argument('--model', type=str, required=True, 
-                        help='モデルファイルのパス')
+                        help='Path to the model file')
     parser.add_argument('--env_size', type=int, default=200, 
-                        help='環境のサイズ')
+                        help='Size of the environment')
     parser.add_argument('--episodes', type=int, default=5, 
-                        help='評価するエピソード数')
+                        help='Number of episodes to evaluate')
     parser.add_argument('--max_steps', type=int, default=500, 
-                        help='1エピソードあたりの最大ステップ数')
+                        help='Maximum steps per episode')
     parser.add_argument('--no_render', action='store_true', 
-                        help='描画を無効にする')
+                        help='Disable rendering')
     parser.add_argument('--fps', type=int, default=30, 
-                        help='描画のフレームレート')
+                        help='Frame rate for rendering')
     parser.add_argument('--output', type=str, default='ppo_evaluation_results', 
-                        help='評価結果を保存するディレクトリ')
+                        help='Directory to save evaluation results')
     
     args = parser.parse_args()
     

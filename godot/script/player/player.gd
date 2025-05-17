@@ -4,6 +4,7 @@ extends Node2D
 
 @export var speed: float = 200.0
 @export var server_url: String = "http://127.0.0.1:8000/reasoning"
+@export var map: TileMapLayer
 
 signal  update_status(status:Array[float])
 
@@ -29,7 +30,7 @@ func _on_request_completed(result, response_code, headers, body):
 	print(json)
 	if (json["next"]["kind"] == "move"):
 		_move(json["next"]["x"], json["next"]["y"])
-	_send_request()
+	#_send_request()
 
 func _ready():
 	# http要求関連の初期化
@@ -66,21 +67,29 @@ func _process(delta):
 		update_status.emit([hp.getres(),satiety.getres(),nthirsty.getres(),body_temperature.getres(),stamina.getres(),drowsiness.getres(),stress.getres()]);
 	
 
-func _move(x: int, y: int):
-	position = Vector2(x*10, y*10)
-	
+# タイルマップ上の移動操作
+# rel = falseで絶対座標で行動
+func _move(x: int, y: int, rel: bool = true):
+	if rel:
+		var distination_pos = map.map_to_local(Vector2(x, y))
+		var distance = distination_pos.distance_to(position)
+		var tween = self.create_tween()
+		tween.tween_property(self, "position", distination_pos, distance / speed)
+		tween.tween_callback(_send_request)
+	else:
+		print("not yet impled non rel move")
 
 
 func _send_request():
 	const header = ["Content-Type: application/json"]
 	var data = {
-		"hp": hp,
-		"satiety": satiety,
-		"nthirsty": nthirsty,
-		"body_temperature": body_temperature,
-		"stamina": stamina,
-		"drowsiness": drowsiness,
-		"stress": stress
+		"hp": hp.getres(),
+		"satiety": satiety.getres(),
+		"nthirsty": nthirsty.getres(),
+		"body_temperature": body_temperature.getres(),
+		"stamina": stamina.getres(),
+		"drowsiness": drowsiness.getres(),
+		"stress": stress.getres()
 	}
 	var error = $HTTPRequest.request(server_url, header, HTTPClient.METHOD_POST, JSON.stringify(data))
 	if error != OK:

@@ -79,6 +79,7 @@ offset_left = -478.0
 offset_top = -504.0
 offset_right = -198.0
 offset_bottom = -58.0
+mouse_filter = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_4j5ol")
 
 [node name="HP" parent="Player/Info/Status" instance=ExtResource("5_0ha60")]

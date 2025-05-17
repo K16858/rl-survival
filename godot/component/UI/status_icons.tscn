@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://ccuuoy4o5fgbr"]
+[gd_scene load_steps=11 format=3 uid="uid://ccuuoy4o5fgbr"]
 
 [ext_resource type="Script" uid="uid://cqhrhbnotu708" path="res://script/UI/status_icons.gd" id="1_6u1qm"]
 [ext_resource type="Texture2D" uid="uid://oisqyekc4wit" path="res://assets/img/icon/hp.png" id="1_sklv8"]
@@ -38,6 +38,9 @@ animations = [{
 "speed": 5.0
 }]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_853qp"]
+size = Vector2(245, 52)
+
 [node name="StatusIcon" type="Node2D"]
 script = ExtResource("1_6u1qm")
 
@@ -64,3 +67,13 @@ position = Vector2(198, 0)
 sprite_frames = SubResource("SpriteFrames_8amel")
 frame = 4
 frame_progress = 0.211273
+
+[node name="ClickableArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ClickableArea"]
+position = Vector2(98.5, 0)
+shape = SubResource("RectangleShape2D_853qp")
+
+[connection signal="input_event" from="ClickableArea" to="." method="_on_clickable_area_input_event"]
+[connection signal="mouse_entered" from="ClickableArea" to="." method="_on_clickable_area_mouse_entered"]
+[connection signal="mouse_exited" from="ClickableArea" to="." method="_on_clickable_area_mouse_exited"]

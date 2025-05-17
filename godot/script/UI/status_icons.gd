@@ -25,3 +25,15 @@ func update_icon(phase:int):
 	if(phase >= 0):
 		for i in range(phase):
 			IconList[i].visible = true;
+
+
+func _on_clickable_area_mouse_entered():
+	pass
+	
+func _on_clickable_area_mouse_exited():
+	pass # Replace with function body.
+
+
+func _on_clickable_area_input_event(viewport, event, shape_idx):
+	if Input.is_action_just_released("click"):
+		print("OK")

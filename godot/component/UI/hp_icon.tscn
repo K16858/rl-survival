@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://djtwhp66qkbtf"]
+
+[ext_resource type="Texture2D" uid="uid://oisqyekc4wit" path="res://assets/img/icon/hp.png" id="1_fw3ic"]
+[ext_resource type="Script" uid="uid://c5rgbcblv6e04" path="res://script/UI/hp_icon.gd" id="2_2fc60"]
+
+[node name="HP1" type="Sprite2D"]
+texture = ExtResource("1_fw3ic")
+script = ExtResource("2_2fc60")

@@ -1,8 +1,38 @@
-[gd_scene load_steps=4 format=4 uid="uid://b0l13vbs1vl83"]
+[gd_scene load_steps=11 format=4 uid="uid://b0l13vbs1vl83"]
 
 [ext_resource type="Script" uid="uid://w83kxaa3s7pb" path="res://scene/main.gd" id="1_wp4xf"]
 [ext_resource type="PackedScene" uid="uid://cmw8sg4pdmj3t" path="res://component/player.tscn" id="2_v0l8b"]
 [ext_resource type="TileSet" uid="uid://bd38kjdty6u2p" path="res://tilemap/MapTileSet.tres" id="2_wp4xf"]
+[ext_resource type="Script" uid="uid://bv7q1oc6meveo" path="res://script/UI/info.gd" id="4_4j5ol"]
+[ext_resource type="PackedScene" uid="uid://ccuuoy4o5fgbr" path="res://component/UI/status_icons.tscn" id="5_0ha60"]
+[ext_resource type="Texture2D" uid="uid://cswo11um7elj7" path="res://assets/img/icon/power.png" id="6_4j5ol"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p1hux"]
+bg_color = Color(0.6, 0.6, 0.6, 0.835294)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4j5ol"]
+bg_color = Color(0.509692, 0.640687, 0.520456, 0.937255)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_of57s"]
+bg_color = Color(0.6, 0.6, 0.6, 0.788235)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b5f6u"]
+bg_color = Color(0, 0, 0, 1)
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_wp4xf")
@@ -17,3 +47,101 @@ position = Vector2(-23, 49)
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
 position = Vector2(-2, -33)
+
+[node name="Info" type="Node2D" parent="Player"]
+script = ExtResource("4_4j5ol")
+
+[node name="Day" type="Panel" parent="Player/Info"]
+offset_left = 196.0
+offset_top = -496.0
+offset_right = 446.0
+offset_bottom = -416.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_p1hux")
+
+[node name="Time" type="Label" parent="Player/Info/Day"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 8.0
+offset_right = 243.0
+offset_bottom = 63.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 40
+text = "Day: 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Status" type="Node2D" parent="Player/Info"]
+
+[node name="Panel" type="Panel" parent="Player/Info/Status"]
+offset_left = -478.0
+offset_top = -504.0
+offset_right = -198.0
+offset_bottom = -58.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_4j5ol")
+
+[node name="HP" parent="Player/Info/Status" instance=ExtResource("5_0ha60")]
+position = Vector2(-432, -456)
+
+[node name="Satiety" parent="Player/Info/Status" instance=ExtResource("5_0ha60")]
+position = Vector2(-436, -398)
+kind = 1
+
+[node name="Nthirsty" parent="Player/Info/Status" instance=ExtResource("5_0ha60")]
+position = Vector2(-436, -338)
+kind = 2
+
+[node name="BodyTemperature" parent="Player/Info/Status" instance=ExtResource("5_0ha60")]
+position = Vector2(-438, -274)
+kind = 3
+
+[node name="Stamina" parent="Player/Info/Status" instance=ExtResource("5_0ha60")]
+position = Vector2(-444, -212)
+kind = 4
+
+[node name="Drowsiness" parent="Player/Info/Status" instance=ExtResource("5_0ha60")]
+position = Vector2(-440, -152)
+kind = 5
+
+[node name="Stress" parent="Player/Info/Status" instance=ExtResource("5_0ha60")]
+position = Vector2(-440, -96)
+kind = 6
+
+[node name="Power" type="Node2D" parent="Player/Info"]
+position = Vector2(-280, 354)
+
+[node name="Panel" type="Panel" parent="Player/Info/Power"]
+offset_left = -178.0
+offset_top = -30.0
+offset_right = 136.0
+offset_bottom = 74.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_of57s")
+
+[node name="Power2" type="Sprite2D" parent="Player/Info/Power"]
+position = Vector2(-115.75, 21.75)
+scale = Vector2(1.27, 1.13)
+texture = ExtResource("6_4j5ol")
+
+[node name="Label" type="Label" parent="Player/Info/Power"]
+offset_left = -76.0
+offset_top = -16.0
+offset_right = 128.0
+offset_bottom = 64.0
+theme_override_font_sizes/font_size = 50
+text = "0/100"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="ShowStatus" type="Button" parent="Player"]
+offset_left = 336.0
+offset_top = 396.0
+offset_right = 449.0
+offset_bottom = 427.0
+theme_override_colors/icon_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/icon_pressed_color = Color(0, 0, 0, 1)
+theme_override_colors/icon_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/icon_normal_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_b5f6u")
+text = "Info"
+
+[connection signal="pressed" from="Player/ShowStatus" to="Player/Info" method="_on_show_status_pressed"]

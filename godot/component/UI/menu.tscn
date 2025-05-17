@@ -48,11 +48,12 @@ offset_right = 160.333
 offset_bottom = 56.0
 texture_normal = ExtResource("3_u6od2")
 
-[node name="TextureButton" type="TextureButton" parent="Panel"]
+[node name="Escape" type="TextureButton" parent="Panel"]
 offset_left = 81.3333
 offset_top = 57.0
 offset_right = 131.333
 offset_bottom = 107.0
+tooltip_text = "Use 100 points to escape from here (You Win!)"
 texture_normal = ExtResource("5_dba25")
 
 [connection signal="pressed" from="Panel/OpenButton" to="." method="_on_open_button_pressed"]

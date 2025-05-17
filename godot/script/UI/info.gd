@@ -15,6 +15,9 @@ var delta_count:float = 0
 func _ready():
 	power = 10;
 	delta_count = 0;
+	
+	#脱出ボタンのシグナルを受け取る
+	$"Menu/Panel/Escape".connect("pressed",_escape_pressed)
 
 func _process(delta):
 	delta_count += delta;
@@ -27,3 +30,7 @@ func _process(delta):
 
 func _on_show_status_pressed():
 	visible = !visible
+	
+func _escape_pressed():
+	if(power >= 100):
+		print("YouWin!!!!!!!!!!!!!!")

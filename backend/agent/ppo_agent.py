@@ -25,20 +25,20 @@ class PPOAgent:
                  seed: int = 42,
                  device: str = 'auto'):
         """
-        PPOエージェントの初期化
+        Initialize PPO agent
         
         Args:
-            vision_shape: ビジョンフィールドの形状 (height, width)
-            status_size: ステータス特徴量の数
-            n_actions: 可能なアクションの数
-            gamma: 割引率
-            gae_lambda: GAE（Generalized Advantage Estimation）のλパラメータ
-            policy_clip: 方策更新のクリッピングパラメータ
-            batch_size: バッチサイズ
-            n_epochs: 各更新で学習を繰り返すエポック数
-            lr: 学習率
-            seed: ランダムシード
-            device: 学習に使用するデバイス ('cpu', 'cuda', or 'auto')
+            vision_shape: Shape of the vision field (height, width)
+            status_size: Number of status features
+            n_actions: Number of possible actions
+            gamma: Discount factor
+            gae_lambda: Lambda parameter for GAE (Generalized Advantage Estimation)
+            policy_clip: Clipping parameter for policy update
+            batch_size: Batch size
+            n_epochs: Number of epochs to repeat learning on each update
+            lr: Learning rate
+            seed: Random seed
+            device: Device used for learning ('cpu', 'cuda', or 'auto')
         """
         self.gamma = gamma
         self.gae_lambda = gae_lambda
@@ -48,11 +48,11 @@ class PPOAgent:
         self.status_size = status_size
         self.n_actions = n_actions
         
-        # 乱数シードの設定
+        # Setting random seed
         random.seed(seed)
         torch.manual_seed(seed)
         
-        # デバイスの決定
+        # Determine device
         if device == 'auto':
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         else:
@@ -60,31 +60,31 @@ class PPOAgent:
         
         print(f"Using device: {self.device}")
         
-        # アクタークリティックネットワークの作成
+        # Create actor-critic network
         self.actor_critic = ActorCritic(
             vision_shape=vision_shape,
             status_size=status_size,
             n_actions=n_actions
         ).to(self.device)
         
-        # オプティマイザの設定
+        # Setup optimizer
         self.optimizer = optim.Adam(self.actor_critic.parameters(), lr=lr)
         
-        # メモリの初期化
+        # Initialize memory
         self.memory = PPOMemory(batch_size)
         
     def act(self, vision, status):
         """
-        与えられた状態から行動を選択
+        Select an action based on the given state
         
         Args:
-            vision: ビジョンフィールド
-            status: ステータス
+            vision: Vision field
+            status: Status
             
         Returns:
-            選択されたアクション、行動確率、推定された状態価値
+            Selected action, action probability, and estimated state value
         """
-        # バッチ次元の追加
+        # Add batch dimension
         if len(vision.shape) == 2:  # [height, width]
             vision = np.expand_dims(vision, axis=0)  # [1, height, width]
         if len(vision.shape) == 3:  # [1, height, width]
@@ -92,38 +92,38 @@ class PPOAgent:
         if len(status.shape) == 1:  # [status_size]
             status = np.expand_dims(status, axis=0)  # [1, status_size]
         
-        # テンソルに変換
+        # Convert to tensor
         vision = torch.from_numpy(vision).float().to(self.device)
         status = torch.from_numpy(status).float().to(self.device)
         
-        # ネットワーク推論
+        # Network inference
         self.actor_critic.eval()
         with torch.no_grad():
             action_probs, state_value = self.actor_critic(vision, status)
         self.actor_critic.train()
         
-        # 確率分布の作成
+        # Create probability distribution
         dist = Categorical(action_probs)
         
-        # アクションのサンプリング
+        # Sample action
         action = dist.sample()
         
-        # 選択したアクションの確率の対数を保存
+        # Save log probability of selected action
         log_prob = dist.log_prob(action)
         
         return action.item(), log_prob.item(), state_value.item()
     
     def remember(self, vision, status, action, prob, val, reward, done):
-        """メモリにトランジションを保存"""
+        """Store transition in memory"""
         self.memory.store(vision, status, action, prob, val, reward, done)
     
     def learn(self):
-        """保存したトランジションを使って学習を行う"""
-        # エピソードがない場合は学習しない
+        """Learn from stored transitions"""
+        # Skip learning if no episodes
         if len(self.memory.visions) == 0:
             return
             
-        # すべてのエピソードデータをテンソルに変換
+        # Convert all episode data to tensors
         device = self.device
         visions = torch.from_numpy(np.array(self.memory.visions)).float().to(device)
         statuses = torch.from_numpy(np.array(self.memory.statuses)).float().to(device)
@@ -131,13 +131,13 @@ class PPOAgent:
         old_probs = torch.tensor(self.memory.probs, dtype=torch.float).to(device)
         vals = torch.tensor(self.memory.vals, dtype=torch.float).to(device)
         
-        # アドバンテージの計算
+        # Calculate advantage
         rewards = np.array(self.memory.rewards)
         dones = np.array(self.memory.dones)
         
         advantages = np.zeros(len(rewards), dtype=np.float32)
         
-        # GAEの計算
+        # Calculate GAE
         for t in range(len(rewards)-1):
             discount = 1
             a_t = 0
@@ -148,55 +148,56 @@ class PPOAgent:
         
         advantages = torch.tensor(advantages, dtype=torch.float).to(device)
         
-        # PPO更新ループ
+        # PPO update loop
         for _ in range(self.n_epochs):
-            # バッチを生成
+            # Generate batches
             batches = self.memory.generate_batches()
             
             for batch in batches:
-                # 現在の方策と価値を計算
+                # Calculate current policy and value
                 action_probs, state_values = self.actor_critic(visions[batch], statuses[batch])
                 state_values = state_values.squeeze()
                 
-                # 確率分布を作成
+                # Create probability distribution
                 dist = Categorical(action_probs)
                 
-                # 新しい行動確率の計算
+                # Calculate new action probabilities
                 new_probs = dist.log_prob(actions[batch])
                 
-                # 確率比率を計算（新しい確率÷古い確率）
+                # Calculate probability ratio (new probability ÷ old probability)
                 prob_ratio = torch.exp(new_probs - old_probs[batch])
                 
-                # PPOの目的関数（クリッピングあり）
+                # PPO objective function (with clipping)
                 weighted_probs = advantages[batch] * prob_ratio
                 clipped_probs = advantages[batch] * torch.clamp(prob_ratio, 1-self.policy_clip, 1+self.policy_clip)
                 actor_loss = -torch.min(weighted_probs, clipped_probs).mean()
                 
-                # クリティックの損失関数（MSE）
+                # Critic loss function (MSE)
                 returns = advantages[batch] + vals[batch]
                 critic_loss = F.mse_loss(state_values, returns)
                 
-                # 合計損失
+                # Total loss
                 total_loss = actor_loss + 0.5 * critic_loss
                 
-                # 勾配の更新
+                # Update gradients
                 self.optimizer.zero_grad()
                 total_loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.actor_critic.parameters(), 0.5)
                 self.optimizer.step()
                 
-        # 学習後にメモリをクリア
+        # Clear memory after learning
         self.memory.clear()
 
     def save(self, path: str):
-        """モデルの保存"""
+        """Save the model"""
         torch.save({
             'model_state_dict': self.actor_critic.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict()
         }, path)
     
     def load(self, path: str):
-        """モデルの読み込み"""
+        """Load the model"""
         checkpoint = torch.load(path, map_location=self.device)
         self.actor_critic.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        

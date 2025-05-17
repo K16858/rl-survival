@@ -5,7 +5,9 @@ import numpy as np
 import torch
 from collections import deque
 import matplotlib.pyplot as plt
-import argparse
+
+TILE_TYPES = 7  # Number of tile types
+MAP_SIZE = 500  # Size of the island map
 
 # Add parent directory to path for module import
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -25,12 +27,12 @@ def preprocess_status(obs, agent_pos):
     current_tile = obs['current_tile']
     
     # One-hot encoding for tile type
-    tile_type_onehot = np.zeros(7)  # Assume 7 tile types
+    tile_type_onehot = np.zeros(TILE_TYPES)  # Assume 7 tile types
     if current_tile < 7:
         tile_type_onehot[current_tile] = 1.0
     
     # Normalize position
-    norm_pos = np.array(agent_pos) / 500.0  # Assume max map size 500
+    norm_pos = np.array(agent_pos) / MAP_SIZE
     
     # Concatenate features
     status = np.concatenate([norm_pos, tile_type_onehot])
@@ -307,40 +309,29 @@ def test_ppo(
     return avg_score
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Train or test PPO agent in island environment')
-    parser.add_argument('--mode', type=str, default='train', choices=['train', 'test'],
-                        help='Mode: train or test')
-    parser.add_argument('--env_size', type=int, default=200,
-                        help='Size of the island map')
-    parser.add_argument('--epochs', type=int, default=100,
-                        help='Number of training epochs')
-    parser.add_argument('--steps', type=int, default=2048,
-                        help='Steps per epoch')
-    parser.add_argument('--model_dir', type=str, default='models_ppo',
-                        help='Directory to save/load models')
-    parser.add_argument('--model_path', type=str, default='ppo_final.pth',
-                        help='Model file name for testing')
-    parser.add_argument('--render', action='store_true',
-                        help='Render environment')
-    parser.add_argument('--experiment', type=str, default=None,
-                        help='Experiment name (directory)')
+    mode = 'train'
+    env_size = 500  # Island size
+    epochs = 100    # Number of training epochs
+    steps = 2048    # Steps per epoch
+    model_dir = 'models_ppo'  # Model save directory
+    model_path = 'ppo_final.pth'  # Model file name for testing
+    render = False  # Environment rendering (True/False)
+    experiment_name = None  # Experiment name (uses timestamp if not specified)
     
-    args = parser.parse_args()
-    
-    if args.mode == 'train':
+    if mode == 'train':
         train_ppo(
-            env_size=args.env_size,
-            n_epochs=args.epochs,
-            n_steps=args.steps,
-            model_dir=args.model_dir,
-            render=args.render,
-            experiment_name=args.experiment
+            env_size=env_size,
+            n_epochs=epochs,
+            n_steps=steps,
+            model_dir=model_dir,
+            render=render,
+            experiment_name=experiment_name
         )
     else:
-        model_path = os.path.join(args.model_dir, args.model_path)
+        full_model_path = os.path.join(model_dir, model_path)
         test_ppo(
-            model_path=model_path,
-            env_size=args.env_size,
+            model_path=full_model_path,
+            env_size=env_size,
             n_episodes=5,
             render=True
         )

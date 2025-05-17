@@ -21,7 +21,6 @@ func _process(delta):
 	PowerLabelNode.text = str(power) + "/" + str(POWER_MAX)
 	
 	if(delta_count >= 1):
-		print("Ok")
 		delta_count -= 1;
 		power = min(power+1,POWER_MAX)
 

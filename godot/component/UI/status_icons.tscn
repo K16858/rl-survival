@@ -74,6 +74,17 @@ frame_progress = 0.211273
 position = Vector2(98.5, 0)
 shape = SubResource("RectangleShape2D_853qp")
 
+[node name="Tooltip" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -25.0
+offset_top = -26.0
+offset_right = 15.0
+offset_bottom = 14.0
+scale = Vector2(6.13948, 1.27149)
+tooltip_text = "You can use 10 points to recover."
+mouse_filter = 1
+
 [connection signal="input_event" from="ClickableArea" to="." method="_on_clickable_area_input_event"]
 [connection signal="mouse_entered" from="ClickableArea" to="." method="_on_clickable_area_mouse_entered"]
 [connection signal="mouse_exited" from="ClickableArea" to="." method="_on_clickable_area_mouse_exited"]

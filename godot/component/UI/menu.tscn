@@ -31,6 +31,7 @@ offset_left = -22.0
 offset_top = -2.0
 offset_right = 3.0
 offset_bottom = 48.0
+tooltip_text = "open menu"
 texture_normal = ExtResource("1_dv87n")
 
 [node name="Good" type="TextureButton" parent="Panel"]

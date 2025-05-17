@@ -60,13 +60,15 @@ func _ready():
 	_send_request()
 	
 	delta_count = 0;
+	
 
 func _process(delta):
-	#一秒毎にステータスのUIを同期
+	update_status.emit([hp.getres(),satiety.getres(),nthirsty.getres(),body_temperature.getres(),stamina.getres(),ndrowsiness.getres(),stress.getres()]);
+	
+	#一秒毎に実行
 	delta_count += delta;
 	if(delta_count > 1):
 		delta_count -= 1;
-		update_status.emit([hp.getres(),satiety.getres(),nthirsty.getres(),body_temperature.getres(),stamina.getres(),ndrowsiness.getres(),stress.getres()]);
 		
 		# 各ステータスの変動
 		# 時間経過ステータス
@@ -115,3 +117,16 @@ func _send_request():
 	if error != OK:
 		push_error("An error occurred in the HTTP request.")
 	print("send")
+
+
+#神からのステータスアップを受け取るためシグナルのコールバック
+func _on_status_send_god_present(kind):
+	const UP:float = 0.3;
+	match(kind):
+		0:hp.addres(UP);
+		1:satiety.addres(UP)
+		2:nthirsty.addres(UP)
+		3:body_temperature.addres(UP)
+		4:stamina.addres(UP)
+		5:ndrowsiness.addres(UP)
+		6:stress.addres(UP)

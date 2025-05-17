@@ -14,6 +14,7 @@ extends Node2D
 ]
 
 @onready var InfoNode:Info = $"../../../Info"
+@onready var StatusNode:Status = $"../../Status"
 
 
 func _ready():
@@ -40,4 +41,6 @@ func _on_clickable_area_mouse_exited():
 func _on_clickable_area_input_event(viewport, event, shape_idx):
 	if Input.is_action_just_released("click"):
 		if(InfoNode.power >= COST):
-			pass
+			InfoNode.power -= COST
+			StatusNode.send_god_present.emit(kind)
+			

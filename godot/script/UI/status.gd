@@ -1,4 +1,8 @@
+class_name Status
+
 extends Node2D
+
+signal send_god_present(kind:int)
 
 @onready var IconList:Array[StatusIcons] = [
 	$"HP",

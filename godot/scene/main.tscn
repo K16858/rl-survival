@@ -154,4 +154,5 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_b5f6u")
 text = "Info"
 
 [connection signal="update_status" from="Player" to="Player/Info/Status" method="_on_player_update_status"]
+[connection signal="send_god_present" from="Player/Info/Status" to="Player" method="_on_status_send_god_present"]
 [connection signal="pressed" from="Player/ShowStatus" to="Player/Info" method="_on_show_status_pressed"]

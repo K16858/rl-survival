@@ -1,7 +1,7 @@
 import numpy as np
 import pygame
 from enum import IntEnum
-from tile import TileType
+from env.tile import TileType
 import random
 from typing import Tuple, Dict, Any, List
 import sys
@@ -105,8 +105,8 @@ class IslandEnvironment:
     
     def _generate_rivers(self, height_map):
         """Generate rivers based on the height map"""
-        # Generate 1-3 rivers flowing from high to low elevation
-        num_rivers = random.randint(1, 3)
+        # Generate 1-5 rivers flowing from high to low elevation (increased from 1-3)
+        num_rivers = random.randint(1, 5)
         
         for _ in range(num_rivers):
             # Start from high elevation grass areas
@@ -120,34 +120,69 @@ class IslandEnvironment:
             current = random.choice(start_candidates)
             river_path = [current]
             
-            # Create river flowing downhill
+            # Create river flowing downhill with some randomness
             while True:
                 i, j = current
                 neighbors = []
                 
-                # Check adjacent cells
-                for di, dj in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-                    ni, nj = i + di, j + dj
-                    if 0 <= ni < self.size and 0 <= nj < self.size:
-                        neighbors.append((ni, nj, height_map[ni, nj]))
+                # Check adjacent cells (including diagonal for more natural flow)
+                for di in [-1, 0, 1]:
+                    for dj in [-1, 0, 1]:
+                        if di == 0 and dj == 0:
+                            continue
+                        
+                        ni, nj = i + di, j + dj
+                        if 0 <= ni < self.size and 0 <= nj < self.size:
+                            # Prioritize straight flow slightly by giving direct neighbors a small bonus
+                            straight_flow_bonus = 0.0
+                            if (di == 0 or dj == 0):
+                                straight_flow_bonus = 0.05
+                                
+                            neighbors.append((ni, nj, height_map[ni, nj] - straight_flow_bonus))
                 
                 # Find lower neighbors
                 lower_neighbors = [(ni, nj, h) for ni, nj, h in neighbors 
-                                 if h < height_map[i, j]]
+                                  if h < height_map[i, j]]
                 
                 # Stop if no lower neighbors or reached ocean
                 if not lower_neighbors or self.map[i, j] == TileType.OCEAN:
                     break
                 
-                # Choose lowest neighbor
-                next_i, next_j, _ = min(lower_neighbors, key=lambda x: x[2])
+                # Choose lowest neighbor with some randomness to create meandering
+                if random.random() < 0.8:  # 80% chance to follow lowest path
+                    next_i, next_j, _ = min(lower_neighbors, key=lambda x: x[2])
+                else:
+                    # Sometimes choose a random lower neighbor for natural meandering
+                    next_i, next_j, _ = random.choice(lower_neighbors)
+                    
                 current = (next_i, next_j)
                 river_path.append(current)
             
-            # Apply river to map
+            # Apply river to map with varying width
+            main_path = set(river_path)
             for i, j in river_path:
                 if self.map[i, j] != TileType.OCEAN:
                     self.map[i, j] = TileType.RIVER
+                    
+                    # Add river width (vary width based on position in river)
+                    # Rivers get wider as they flow downstream
+                    pos_ratio = river_path.index((i, j)) / max(1, len(river_path))
+                    width_chance = 0.1 + pos_ratio * 0.4  # 10% at source, up to 50% at end
+                    
+                    # Maybe add width to the river
+                    for di in [-1, 0, 1]:
+                        for dj in [-1, 0, 1]:
+                            if di == 0 and dj == 0:
+                                continue
+                                
+                            ni, nj = i + di, j + dj
+                            # Only widen river if not already part of main path and with decreasing probability
+                            if ((ni, nj) not in main_path and 
+                                0 <= ni < self.size and 
+                                0 <= nj < self.size and 
+                                self.map[ni, nj] != TileType.OCEAN and
+                                random.random() < width_chance):
+                                self.map[ni, nj] = TileType.RIVER
     
     def _initialize_pygame(self):
         """Initialize PyGame"""

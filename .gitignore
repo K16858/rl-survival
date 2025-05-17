@@ -1,0 +1,4 @@
+/.venv
+/backend/tests
+/backend/env/__pycache__
+/*.png

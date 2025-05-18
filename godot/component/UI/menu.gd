@@ -19,7 +19,3 @@ func _on_open_button_pressed():
 		var tween = self.create_tween()
 		tween.tween_property(self, "position", CLOSE_POSITION, 0.2)
 		is_opend = false
-
-
-func _on_escape_pressed():
-	SceneManager.change_scene("game_clear")

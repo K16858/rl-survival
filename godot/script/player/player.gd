@@ -15,6 +15,8 @@ extends Node2D
 @export var nthirsty_use_cycle: int = 60
 @export var ndrowsiness_use_cycle: int = 200
 
+@export var body_temperature_use_cycle: Array[int] = [50,100]
+
 const WATER_CELL_ID: int = 3
 
 signal update_status(status: Array[float])
@@ -84,6 +86,7 @@ func _ready():
 	
 	delta_count = 0;
 	
+	
 
 func _process(delta):
 	update_status.emit([hp.getres(), satiety.getres(), nthirsty.getres(), body_temperature.getres(), stamina.getres(), ndrowsiness.getres(), stress.getres()]);
@@ -99,6 +102,16 @@ func _process(delta):
 		nthirsty.subres(1. / nthirsty_use_cycle)
 		ndrowsiness.subres(1. / ndrowsiness_use_cycle)
 		
+		var current_grid:Vector2i = map.local_to_map(position)
+		var tiledata = map.get_cell_tile_data(Vector2i(current_grid.x,current_grid.y))
+		var tileid = tiledata.get_custom_data("kind")
+		
+		if(tileid == 3):
+			body_temperature.subres(1./ body_temperature_use_cycle[1]);
+		else:
+			body_temperature.subres(1./ body_temperature_use_cycle[0]);
+		
+		
 		# 気温処理
 		# TODO
 		
@@ -112,6 +125,7 @@ func _process(delta):
 			if(is_alive):
 				is_alive = false
 				gameover.emit()
+				$SEPlayer.play_se("down")
 				$AnimatedSprite2D.play("dead")
 				$ShowStatus.disabled = true;
 	
@@ -173,20 +187,30 @@ func _use():
 		1: 
 			satiety.addres(50./satiety_use_cycle) 
 			$AnimatedSprite2D.play("eat")
+			$SEPlayer.play_se("eat")
 			#INFO 一秒待機、この実装で良いのかわからん
 			await get_tree().create_timer(1).timeout
 			$AnimatedSprite2D.play("default")
-		6: pass
+		6: 
+			body_temperature.addres(50./satiety_use_cycle) 
+			#INFO 一秒待機、この実装で良いのかわからん
+			await get_tree().create_timer(1).timeout
+			$AnimatedSprite2D.play("default")
 		7: 
 			# 睡眠
 			# 時間経過 TODO かなり厄介そうなので
 			#var tween = self.create_tween()
 			#tween.tween_interval
 			#
-			ndrowsiness.addres(1)
+			$AnimatedSprite2D.play("sleep")
+			await get_tree().create_timer(5).timeout
+			ndrowsiness.addres(-1)
 			stamina.addres(1)
-	
-
+			$AnimatedSprite2D.play("default")
+			
+	# remove処理
+	$"/root/Main/ItemTile".erase_cell(item_pos + onmap_pos)
+	_send_request()
 
 func _send_request():
 	_send_reward()

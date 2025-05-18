@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://cmw8sg4pdmj3t"]
+[gd_scene load_steps=11 format=3 uid="uid://cmw8sg4pdmj3t"]
 
 [ext_resource type="Script" uid="uid://brnxr8360u01u" path="res://script/player/player.gd" id="1_ju346"]
 [ext_resource type="Texture2D" uid="uid://b467peksih7vf" path="res://assets/img/bot.png" id="1_kdf4k"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://kyogmpdbi2ra" path="res://assets/img/bot_drink.png" id="6_jkug0"]
 [ext_resource type="Texture2D" uid="uid://b0x8w4gw5optm" path="res://assets/img/bot_eat.png" id="7_skmty"]
 [ext_resource type="Texture2D" uid="uid://17vp2om0b8y8" path="res://assets/img/bot_sleep.png" id="8_skmty"]
+[ext_resource type="Script" uid="uid://byb2crjwwayn3" path="res://script/player/player_SE.gd" id="9_e5x70"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_ju346"]
 animations = [{
@@ -69,7 +70,9 @@ script = ExtResource("1_ju346")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(1, -52)
 sprite_frames = SubResource("SpriteFrames_ju346")
-animation = &"sleep"
 
 [node name="HTTPRequest" type="HTTPRequest" parent="."]
 use_threads = true
+
+[node name="SEPlayer" type="AudioStreamPlayer" parent="."]
+script = ExtResource("9_e5x70")

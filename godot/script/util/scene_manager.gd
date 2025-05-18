@@ -1,7 +1,8 @@
 extends Node
 
 var scene_dictionary:Dictionary[String,PackedScene] = {
-	"main":preload("res://scene/main.tscn")
+	"main":preload("res://scene/main.tscn"),
+	"game_clear":preload("res://scene/GameClear.tscn")
 }
 
 func change_scene(key:String):

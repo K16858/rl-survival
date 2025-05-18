@@ -61,3 +61,4 @@ tooltip_text = "Use 100 points to escape from here (You Win!)"
 texture_normal = ExtResource("5_dba25")
 
 [connection signal="pressed" from="Panel/OpenButton" to="." method="_on_open_button_pressed"]
+[connection signal="pressed" from="Panel/Escape" to="." method="_on_escape_pressed"]

@@ -16,4 +16,4 @@ func _on_animation_player_animation_finished(anim_name):
 
 
 func _on_button_pressed():
-	pass # Replace with function body.
+	SceneManager.change_scene("main")

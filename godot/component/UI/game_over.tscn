@@ -59,7 +59,7 @@ offset_right = 92.0
 offset_bottom = 407.0
 theme_override_font_sizes/font_size = 30
 theme_override_styles/normal = SubResource("StyleBoxFlat_u214h")
-text = "Go Back Title"
+text = "Restart"
 
 [node name="Timer" type="Timer" parent="."]
 wait_time = 0.5

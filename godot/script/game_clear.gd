@@ -11,4 +11,4 @@ func anim_finished():
 	$Button.visible = true
 
 func _on_button_pressed():
-	pass # Replace with function body.
+	SceneManager.change_scene("main")

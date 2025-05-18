@@ -108,7 +108,6 @@ offset_top = 361.0
 offset_right = 341.0
 offset_bottom = 411.0
 theme_override_font_sizes/font_size = 30
-text = "Go Back Title
-"
+text = "Restart"
 
 [connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

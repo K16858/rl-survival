@@ -15,7 +15,8 @@ extends Node2D
 @export var ndrowsiness_use_cycle: int = 100
 
 
-signal  update_status(status:Array[float])
+signal update_status(status: Array[float])
+signal gameover()
 
 # 体力
 var hp: Resource_t
@@ -32,7 +33,9 @@ var ndrowsiness: Resource_t
 # ストレス
 var stress: Resource_t
 
-var delta_count:float
+var delta_count: float
+
+var is_alive:bool;
 
 func _on_request_completed(result, response_code, headers, body):
 	var json = JSON.parse_string(body.get_string_from_utf8())
@@ -53,8 +56,11 @@ func _ready():
 	stamina = Resource_t.newres(1)
 	ndrowsiness = Resource_t.newres(1)
 	stress = Resource_t.newres(0)
+	
+	is_alive = true;
 	# その他初期化
 	$AnimatedSprite2D.play("default")
+	$ShowStatus.disabled = false
 	
 	# 初期行動要求
 	_send_request()
@@ -63,18 +69,18 @@ func _ready():
 	
 
 func _process(delta):
-	update_status.emit([hp.getres(),satiety.getres(),nthirsty.getres(),body_temperature.getres(),stamina.getres(),ndrowsiness.getres(),stress.getres()]);
+	update_status.emit([hp.getres(), satiety.getres(), nthirsty.getres(), body_temperature.getres(), stamina.getres(), ndrowsiness.getres(), stress.getres()]);
 	
 	#一秒毎に実行
 	delta_count += delta;
-	if(delta_count > 1):
+	if (delta_count > 1):
 		delta_count -= 1;
 		
 		# 各ステータスの変動
 		# 時間経過ステータス
-		satiety.subres(1./satiety_use_cycle)
-		nthirsty.subres(1./nthirsty_use_cycle)
-		ndrowsiness.subres(1./ndrowsiness_use_cycle)
+		satiety.subres(1. / satiety_use_cycle)
+		nthirsty.subres(1. / nthirsty_use_cycle)
+		ndrowsiness.subres(1. / ndrowsiness_use_cycle)
 		
 		# 気温処理
 		# TODO
@@ -82,11 +88,15 @@ func _process(delta):
 		# 体力変動fnc
 		var sub = func(x: float):
 			return x - resource_baseline
-		var stat_min = [satiety.getres(), nthirsty.getres(), ndrowsiness.getres(), (1-stress.getres())].map(sub).min()
+		var stat_min = [satiety.getres(), nthirsty.getres(), ndrowsiness.getres(), (1 - stress.getres())].map(sub).min()
 		print(stat_min)
 		
 		if hp.subres(-stat_min * hp_change_multi):
-			print("game over !!!!!!!!!!!!!!!!!")
+			if(is_alive):
+				is_alive = false
+				gameover.emit()
+				$AnimatedSprite2D.play("dead")
+				$ShowStatus.disabled = true;
 	
 
 # タイルマップ上の移動操作
@@ -100,7 +110,7 @@ func _move(x: int, y: int, rel: bool = true):
 		tween.tween_property(self, "position", distination_pos, distance / speed)
 		tween.tween_callback(_send_request)
 		
-		if(direction.x>=0):
+		if (direction.x >= 0):
 			$AnimatedSprite2D.flip_h = false;
 		else:
 			$AnimatedSprite2D.flip_h = true;
@@ -128,12 +138,12 @@ func _send_request():
 
 #神からのステータスアップを受け取るためシグナルのコールバック
 func _on_status_send_god_present(kind):
-	const UP:float = 0.3;
-	match(kind):
-		0:hp.addres(UP);
-		1:satiety.addres(UP)
-		2:nthirsty.addres(UP)
-		3:body_temperature.addres(UP)
-		4:stamina.addres(UP)
-		5:ndrowsiness.addres(UP)
-		6:stress.addres(-UP)
+	const UP: float = 0.3;
+	match (kind):
+		0: hp.addres(UP);
+		1: satiety.addres(UP)
+		2: nthirsty.addres(UP)
+		3: body_temperature.addres(UP)
+		4: stamina.addres(UP)
+		5: ndrowsiness.addres(UP)
+		6: stress.addres(-UP)

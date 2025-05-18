@@ -1,11 +1,27 @@
-[gd_scene load_steps=5 format=3 uid="uid://cmw8sg4pdmj3t"]
+[gd_scene load_steps=7 format=3 uid="uid://cmw8sg4pdmj3t"]
 
 [ext_resource type="Script" uid="uid://brnxr8360u01u" path="res://script/player/player.gd" id="1_ju346"]
 [ext_resource type="Texture2D" uid="uid://b467peksih7vf" path="res://assets/img/bot.png" id="1_kdf4k"]
+[ext_resource type="Texture2D" uid="uid://b553ptajtit71" path="res://assets/img/dead1.png" id="3_ok5lv"]
 [ext_resource type="Texture2D" uid="uid://dmndbjhe2pbdk" path="res://assets/img/bot2.png" id="3_v7rm1"]
+[ext_resource type="Texture2D" uid="uid://c18so8ftl3la2" path="res://assets/img/dead2.png" id="4_6i8qt"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_ju346"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_kdf4k")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_ok5lv")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_6i8qt")
+}],
+"loop": false,
+"name": &"dead",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("1_kdf4k")
@@ -26,6 +42,9 @@ script = ExtResource("1_ju346")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(1, -52)
 sprite_frames = SubResource("SpriteFrames_ju346")
+animation = &"dead"
+frame = 2
+frame_progress = 1.0
 
 [node name="HTTPRequest" type="HTTPRequest" parent="."]
 use_threads = true

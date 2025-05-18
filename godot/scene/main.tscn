@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=4 uid="uid://b0l13vbs1vl83"]
+[gd_scene load_steps=15 format=4 uid="uid://b0l13vbs1vl83"]
 
 [ext_resource type="Script" uid="uid://w83kxaa3s7pb" path="res://scene/main.gd" id="1_wp4xf"]
 [ext_resource type="PackedScene" uid="uid://cmw8sg4pdmj3t" path="res://component/player.tscn" id="2_v0l8b"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://dnmovij02v5af" path="res://script/UI/status.gd" id="5_p1hux"]
 [ext_resource type="Texture2D" uid="uid://cswo11um7elj7" path="res://assets/img/icon/power.png" id="6_4j5ol"]
 [ext_resource type="PackedScene" uid="uid://dh8l3fufodkqj" path="res://component/UI/menu.tscn" id="8_of57s"]
+[ext_resource type="PackedScene" uid="uid://uaic66pw8uv8" path="res://component/UI/game_over.tscn" id="10_tqoya"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p1hux"]
 bg_color = Color(0.6, 0.6, 0.6, 0.835294)
@@ -157,6 +158,11 @@ theme_override_font_sizes/font_size = 35
 theme_override_styles/normal = SubResource("StyleBoxFlat_b5f6u")
 text = "Info"
 
+[node name="GameOver" parent="." instance=ExtResource("10_tqoya")]
+position = Vector2(-21, -250)
+
+[connection signal="gameover" from="Player" to="Player/Info" method="_on_player_gameover"]
+[connection signal="gameover" from="Player" to="GameOver" method="_on_player_gameover"]
 [connection signal="update_status" from="Player" to="Player/Info/Status" method="_on_player_update_status"]
 [connection signal="send_god_present" from="Player/Info/Status" to="Player" method="_on_status_send_god_present"]
 [connection signal="pressed" from="Player/ShowStatus" to="Player/Info" method="_on_show_status_pressed"]

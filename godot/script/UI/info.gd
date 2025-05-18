@@ -34,3 +34,7 @@ func _on_show_status_pressed():
 func _escape_pressed():
 	if(power >= 100):
 		print("YouWin!!!!!!!!!!!!!!")
+
+
+func _on_player_gameover():
+	visible = false;

@@ -93,7 +93,7 @@ func _process(delta):
 # rel = falseで絶対座標で行動
 func _move(x: int, y: int, rel: bool = true):
 	if rel:
-		var distination_pos = map.map_to_local(Vector2(x, y))
+		var distination_pos = map.map_to_local(Vector2(map.local_to_map(position)) + Vector2(x, y))
 		var distance = distination_pos.distance_to(position)
 		var direction = position.direction_to(distination_pos);
 		var tween = self.create_tween()
@@ -111,6 +111,27 @@ func _move(x: int, y: int, rel: bool = true):
 
 func _send_request():
 	const header = ["Content-Type: application/json"]
+	# ---------------------------------------------------------視界取得------------------------------
+	const VIEW_SIZE = 11
+	# タイル情報の取得
+	var pl_mappos = map.local_to_map(position)
+	var viewtile: Array[int] = []
+	for x in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
+		for y in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
+			var tiledata = $"/root/Main/MapTile".get_cell_tile_data(Vector2(x, y) + Vector2(pl_mappos))
+			if tiledata:
+				#print("tile data", x, y)
+				#print(tiledata.get_custom_data("kind"))
+				viewtile.push_back(tiledata.get_custom_data("kind"))
+	# アイテム情報の取得
+	var viewitem: Array[int] = []
+	for x in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
+		for y in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
+			var tiledata = $"/root/Main/ItemTile".get_cell_tile_data(Vector2(x, y) + Vector2(pl_mappos))
+			if tiledata:
+				viewitem.push_back(tiledata.get_custom_data("kind"))
+			else:
+				viewitem.push_back(-1)
 	var data = {
 		"hp": hp.getres(),
 		"satiety": satiety.getres(),
@@ -118,7 +139,9 @@ func _send_request():
 		"body_temperature": body_temperature.getres(),
 		"stamina": stamina.getres(),
 		"ndrowsiness": ndrowsiness.getres(),
-		"stress": stress.getres()
+		"stress": stress.getres(),
+		"view_tile": viewtile,
+		"view_item": viewitem
 	}
 	var error = $HTTPRequest.request(server_url, header, HTTPClient.METHOD_POST, JSON.stringify(data))
 	if error != OK:

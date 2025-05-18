@@ -10,12 +10,15 @@ def allive():
 @app.route('/reasoning', methods=['POST'])
 def reasoning():
     print(request.json)
+    print(request.json["view_item"][49])
+    a = input()
+    b = input()
     data = {
         "id" : 1,
         "next": {
             "kind": "move",
-            "x": random.randint(-10, 10),
-            "y": random.randint(-10, 10)
+            "x": int(a),
+            "y": int(b)
         }
     }
     return data

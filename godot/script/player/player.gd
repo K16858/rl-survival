@@ -77,6 +77,7 @@ func _ready():
 	
 	delta_count = 0;
 	
+	
 
 func _process(delta):
 	update_status.emit([hp.getres(), satiety.getres(), nthirsty.getres(), body_temperature.getres(), stamina.getres(), ndrowsiness.getres(), stress.getres()]);
@@ -151,6 +152,7 @@ func _pick_aftermove(itemid: int, item_pos: Vector2):
 		0: 
 			nthirsty.addres(50./nthirsty_use_cycle)
 			$AnimatedSprite2D.play("drink")
+			$SEPlayer.play_se("drink")
 			#INFO 一秒待機、この実装で良いのかわからん
 			await get_tree().create_timer(1).timeout
 			$AnimatedSprite2D.play("default")
@@ -159,6 +161,7 @@ func _pick_aftermove(itemid: int, item_pos: Vector2):
 		1: 
 			satiety.addres(50./satiety_use_cycle) 
 			$AnimatedSprite2D.play("eat")
+			$SEPlayer.play_se("eat")
 			#INFO 一秒待機、この実装で良いのかわからん
 			await get_tree().create_timer(1).timeout
 			$AnimatedSprite2D.play("default")

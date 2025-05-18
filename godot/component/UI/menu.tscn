@@ -36,6 +36,7 @@ tooltip_text = "open menu"
 texture_normal = ExtResource("1_dv87n")
 
 [node name="Good" type="TextureButton" parent="Panel"]
+visible = false
 layout_mode = 0
 offset_left = 41.6667
 offset_top = 8.66667
@@ -44,6 +45,7 @@ offset_bottom = 58.6667
 texture_normal = ExtResource("2_i3ood")
 
 [node name="Bad" type="TextureButton" parent="Panel"]
+visible = false
 layout_mode = 0
 offset_left = 110.333
 offset_top = 6.0
@@ -53,10 +55,10 @@ texture_normal = ExtResource("3_u6od2")
 
 [node name="Escape" type="TextureButton" parent="Panel"]
 layout_mode = 0
-offset_left = 81.3333
-offset_top = 57.0
-offset_right = 131.333
-offset_bottom = 107.0
+offset_left = 73.6667
+offset_top = 27.3333
+offset_right = 123.666
+offset_bottom = 77.3333
 tooltip_text = "Use 100 points to escape from here (You Win!)"
 texture_normal = ExtResource("5_dba25")
 

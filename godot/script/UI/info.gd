@@ -34,6 +34,10 @@ func _on_show_status_pressed():
 func _escape_pressed():
 	if(power >= 100):
 		print("YouWin!!!!!!!!!!!!!!")
+		$InfoSE.play_se("recover")
+		SceneManager.change_scene("game_clear")
+	else:
+		$InfoSE.play_se("failure")
 
 
 func _on_player_gameover():

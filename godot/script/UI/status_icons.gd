@@ -41,6 +41,8 @@ func _on_clickable_area_mouse_exited():
 func _on_clickable_area_input_event(viewport, event, shape_idx):
 	if Input.is_action_just_released("click"):
 		if(InfoNode.power >= COST):
+			$"../../InfoSE".play_se("recover")
 			InfoNode.power -= COST
 			StatusNode.send_god_present.emit(kind)
-			
+		else:
+			$"../../InfoSE".play_se("failure")

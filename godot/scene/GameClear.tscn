@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=3 uid="uid://ya8iv5srt132"]
+[gd_scene load_steps=9 format=3 uid="uid://ya8iv5srt132"]
 
 [ext_resource type="Texture2D" uid="uid://d05vbfuoxe52m" path="res://assets/img/effect/escape_island.png" id="1_n8ubk"]
 [ext_resource type="Script" uid="uid://bichxivrv8i2y" path="res://script/game_clear.gd" id="1_x3iad"]
 [ext_resource type="Texture2D" uid="uid://6xtg6jj12hjm" path="res://assets/img/bot_and_boat.png" id="2_x3iad"]
 [ext_resource type="Texture2D" uid="uid://civxss5ikxj5" path="res://assets/img/effect/win.png" id="4_t8lml"]
+[ext_resource type="AudioStream" uid="uid://daqxl4n0smx4j" path="res://assets/SE/ocean.mp3" id="5_543jd"]
 
 [sub_resource type="Animation" id="Animation_t8lml"]
 length = 0.001
@@ -109,5 +110,9 @@ offset_right = 341.0
 offset_bottom = 411.0
 theme_override_font_sizes/font_size = 30
 text = "Restart"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_543jd")
+autoplay = true
 
 [connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

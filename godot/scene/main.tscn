@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=4 uid="uid://b0l13vbs1vl83"]
+[gd_scene load_steps=16 format=4 uid="uid://b0l13vbs1vl83"]
 
 [ext_resource type="Script" uid="uid://w83kxaa3s7pb" path="res://scene/main.gd" id="1_wp4xf"]
 [ext_resource type="PackedScene" uid="uid://cmw8sg4pdmj3t" path="res://component/player.tscn" id="2_v0l8b"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://dnmovij02v5af" path="res://script/UI/status.gd" id="5_p1hux"]
 [ext_resource type="Texture2D" uid="uid://cswo11um7elj7" path="res://assets/img/icon/power.png" id="6_4j5ol"]
 [ext_resource type="PackedScene" uid="uid://dh8l3fufodkqj" path="res://component/UI/menu.tscn" id="8_of57s"]
+[ext_resource type="Script" uid="uid://btrb2yohd78wi" path="res://script/UI/info_se.gd" id="10_k65ib"]
 [ext_resource type="PackedScene" uid="uid://uaic66pw8uv8" path="res://component/UI/game_over.tscn" id="10_tqoya"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p1hux"]
@@ -144,6 +145,9 @@ vertical_alignment = 1
 
 [node name="Menu" parent="Player/Info" instance=ExtResource("8_of57s")]
 position = Vector2(448, 176)
+
+[node name="InfoSE" type="AudioStreamPlayer" parent="Player/Info"]
+script = ExtResource("10_k65ib")
 
 [node name="ShowStatus" type="Button" parent="Player"]
 offset_left = -454.0

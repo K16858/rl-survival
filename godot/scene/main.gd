@@ -9,6 +9,10 @@ var time: float = 0;
 
 var delta_count:float
 
+var thread:Thread;
+
+const EXE_PATH:String = "./server.exe"
+
 const WORLD_MAX_X: int = 100;
 const WORLD_MAX_Y: int = 100;
 
@@ -17,7 +21,6 @@ const Y_pre_Tile = 50;
 
 const ITEM_MARGIN:int = 4;
 
-#TODO 要調整
 const SECONDperDAY:float = 60;
 
 enum MapTileEnum {
@@ -32,6 +35,11 @@ enum MapTileEnum {
 @onready var ItemTileNode: TileMapLayer = $ItemTile
 
 func _ready():
+	
+	thread =Thread.new()
+	
+	thread.start(OS.execute.bind(EXE_PATH, []))
+	
 	day = 1;
 	time = 0;
 	for i in range(WORLD_MAX_X):

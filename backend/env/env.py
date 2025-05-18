@@ -6,6 +6,7 @@ import random
 from typing import Tuple, Dict, Any, List
 import sys
 from env.survivor import Survivor 
+from env.item import Item, ItemType
 
 class IslandEnvironment:
     def __init__(self, size=500, seed=None, tile_size=3, fps=30, movement_type="continuous", window_size=600):
@@ -53,6 +54,11 @@ class IslandEnvironment:
             
         # Movement speed
         self.move_speed = 0.5  # Movement per step
+        
+        # アイテム配置リスト
+        self.items: List[Dict[str, Any]] = []
+        # テント配置リスト
+        self.tents: List[Tuple[float, float]] = []
         
         # Generate the map
         self._generate_map()
@@ -114,6 +120,46 @@ class IslandEnvironment:
             i, j = random.choice(valid_positions)
             # Place in center of the tile for continuous movement
             self.agent_pos = (i + 0.5, j + 0.5)
+        
+        # --- ランダムにアイテムを生成 ---
+        num_wood = self.size // 2
+        num_stone = self.size // 2
+        num_fruit = self.size // 4
+        for _ in range(num_wood):
+            while True:
+                i, j = random.randint(0, self.size-1), random.randint(0, self.size-1)
+                if self.map[i, j] == TileType.GRASS:
+                    self.items.append({
+                        'item': Item(ItemType.WOOD, 'Wood'),
+                        'pos': (i+0.5, j+0.5)
+                    })
+                    break
+        for _ in range(num_stone):
+            while True:
+                i, j = random.randint(0, self.size-1), random.randint(0, self.size-1)
+                if self.map[i, j] == TileType.GRASS or self.map[i, j] == TileType.MOUNTAIN:
+                    self.items.append({
+                        'item': Item(ItemType.STONE, 'Stone'),
+                        'pos': (i+0.5, j+0.5)
+                    })
+                    break
+        for _ in range(num_fruit):
+            while True:
+                i, j = random.randint(0, self.size-1), random.randint(0, self.size-1)
+                if self.map[i, j] == TileType.GRASS:
+                    self.items.append({
+                        'item': Item(ItemType.FRUIT, 'Fruit'),
+                        'pos': (i+0.5, j+0.5)
+                    })
+                    break
+        # --- ランダムな3点にテントを設置 ---
+        tent_positions = random.sample([
+            (i+0.5, j+0.5) for i in range(self.size) for j in range(self.size)
+            if self.map[i, j] == TileType.GRASS
+        ], 3)
+        for pos in tent_positions:
+            self.tents.append(pos)
+        # ...既存のエージェント初期位置設定...
     
     def _generate_rivers(self, height_map):
         """Generate rivers based on the height map"""
@@ -381,11 +427,28 @@ class IslandEnvironment:
                     vision[vi, vj] = self.map[map_i, map_j]
                 else:
                     vision[vi, vj] = TileType.OCEAN  # Outside map is ocean
-        
+
+        # --- サバイバーのステータスをobsに追加 ---
+        # ここでは最初のサバイバーのみ
+        survivor = self.survivors[0]
+        agent_status = {
+            'hp': survivor.health * 100,  # 0~1を0~100に
+            'stamina': survivor.stamina * 100,
+            'hunger': survivor.satiety * 100,
+            'hydration': survivor.hydration * 100,
+            'temperature': survivor.temperature,  # 0~1
+            'rest': survivor.rest * 100,
+            'stress': survivor.stress * 100,
+            'is_alive': float(survivor.is_alive),
+            'days_survived': survivor.days_survived
+        }
+
         return {
             'position': self.agent_pos,  # Continuous position
             'vision': vision,
-            'current_tile': self.get_tile_at_position(*self.agent_pos)
+            'current_tile': self.get_tile_at_position(*self.agent_pos),
+            # ここで追加
+            **agent_status
         }
     
     def _calculate_reward(self):
@@ -432,7 +495,10 @@ class IslandEnvironment:
                 # Draw if on screen
                 if 0 <= screen_i < self.display_size and 0 <= screen_j < self.display_size:
                     # Draw the tile
-                    color = TileType.get_color(self.map[i, j])
+                    try:
+                        color = TileType.get_color(TileType(self.map[i, j]))
+                    except ValueError:
+                        color = (100, 100, 100)  # fallback gray
                     pygame.draw.rect(
                         self.screen, 
                         color, 
@@ -486,12 +552,13 @@ class IslandEnvironment:
             font = pygame.font.Font(None, 24)
             
             # Display survivor stats
+            survivor = self.survivors[0]  # ← 修正
             status_lines = [
                 f"Day: {int(self.time_passed / 24) + 1}, Hour: {int(self.time_passed % 24)}",
-                f"Health: {self.survivor.health:.2f}",
-                f"Satiety: {self.survivor.satiety:.2f}",
-                f"Hydration: {self.survivor.hydration:.2f}",
-                f"Stamina: {self.survivor.stamina:.2f}"
+                f"Health: {survivor.health:.2f}",
+                f"Satiety: {survivor.satiety:.2f}",
+                f"Hydration: {survivor.hydration:.2f}",
+                f"Stamina: {survivor.stamina:.2f}"
             ]
             
             y_offset = 10

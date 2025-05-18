@@ -33,9 +33,21 @@ def preprocess_status(obs, agent_pos):
     
     # Normalize position
     norm_pos = np.array(agent_pos) / MAP_SIZE
-    
+
+    # --- サバイバーのステータスを追加 ---
+    # 例: HP, スタミナ, 満腹度など。obsに含まれていることが前提。
+    # 値が0~1になるように正規化する
+    survivor_status = []
+    if 'hp' in obs:
+        survivor_status.append(obs['hp'] / 100.0)  # HP最大値100想定
+    if 'stamina' in obs:
+        survivor_status.append(obs['stamina'] / 100.0)  # スタミナ最大値100想定
+    if 'hunger' in obs:
+        survivor_status.append(obs['hunger'] / 100.0)  # 満腹度最大値100想定
+    # 必要に応じて他のステータスも追加
+
     # Concatenate features
-    status = np.concatenate([norm_pos, tile_type_onehot])
+    status = np.concatenate([norm_pos, tile_type_onehot, survivor_status])
     
     return status
 

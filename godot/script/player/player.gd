@@ -4,6 +4,7 @@ extends Node2D
 
 @export var speed: float = 200.0
 @export var server_url: String = "http://127.0.0.1:8000/api/get_action"
+@export var reward_url: String = "http://127.0.0.1:8000/api/learn"
 @export var map: TileMapLayer
 
 @export var resource_baseline: float = 0.7
@@ -50,7 +51,6 @@ var inventory: Array[int]
 
 func _on_request_completed(result, response_code, headers, body):
 	var json = JSON.parse_string(body.get_string_from_utf8())
-	print(json)
 	if (json["next"]["kind"] == "move"):
 		_move(json["next"]["x"], json["next"]["y"], _send_request)
 	elif (json["next"]["kind"] == "pick"):
@@ -189,6 +189,7 @@ func _use():
 
 
 func _send_request():
+	_send_reward()
 	const header = ["Content-Type: application/json"]
 	# ---------------------------------------------------------視界取得------------------------------
 	const VIEW_SIZE = 11
@@ -252,6 +253,18 @@ func _send_request():
 		push_error("An error occurred in the HTTP request.")
 	print("send")
 
+
+func _send_reward():
+	const header = ["Content-Type: application/json"]
+	var data = {
+		"reward": hp.getres(),
+		"done": !is_alive,
+	}
+	var error = $HTTPRequest.request(reward_url, header, HTTPClient.METHOD_POST, JSON.stringify(data))
+	if error != OK:
+		push_error("An error occurred in the HTTP request.")
+	print("send reward")
+	
 
 #神からのステータスアップを受け取るためシグナルのコールバック
 func _on_status_send_god_present(kind):

@@ -1,3 +1,10 @@
+
 .godot/
 /android/
 venv
+/.venv
+/backend/tests
+/backend/env/__pycache__
+/backend/train/__pycache__
+/models_ppo
+/*.png

@@ -152,14 +152,13 @@ class IslandEnvironment:
                         'pos': (i+0.5, j+0.5)
                     })
                     break
-        # --- ランダムな3点にテントを設置 ---
+        tent_count = 5
         tent_positions = random.sample([
             (i+0.5, j+0.5) for i in range(self.size) for j in range(self.size)
             if self.map[i, j] == TileType.GRASS
-        ], 3)
+        ], tent_count)
         for pos in tent_positions:
             self.tents.append(pos)
-        # ...既存のエージェント初期位置設定...
     
     def _generate_rivers(self, height_map):
         """Generate rivers based on the height map"""

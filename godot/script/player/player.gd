@@ -34,11 +34,18 @@ var stress: Resource_t
 
 var delta_count:float
 
+# 現在の位置(map)のcatch
+var onmap_pos: Vector2
+# viewitemのcatch
+var viewitem_catch: Dictionary[int, Vector2]
+
 func _on_request_completed(result, response_code, headers, body):
 	var json = JSON.parse_string(body.get_string_from_utf8())
 	print(json)
 	if (json["next"]["kind"] == "move"):
 		_move(json["next"]["x"], json["next"]["y"])
+	elif (json["next"]["kind"] == "pick"):
+		_pick(json["next"]["item"])
 	#_send_request()
 
 func _ready():
@@ -108,17 +115,28 @@ func _move(x: int, y: int, rel: bool = true):
 	else:
 		print("not yet impled non rel move")
 
+func _pick(itemid: int):
+	var item_pos = viewitem_catch[itemid]
+	if !item_pos:
+		# なければ早期ret
+		return
+	_move(item_pos.x, item_pos.y)
+	# itemごとの処理
+	
+	# remove処理
 
 func _send_request():
 	const header = ["Content-Type: application/json"]
 	# ---------------------------------------------------------視界取得------------------------------
 	const VIEW_SIZE = 11
 	# タイル情報の取得
-	var pl_mappos = map.local_to_map(position)
+	onmap_pos = map.local_to_map(position)
+	# 距離キャッシュの初期化
+	viewitem_catch = {}
 	var viewtile: Array[int] = []
 	for x in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
 		for y in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
-			var tiledata = $"/root/Main/MapTile".get_cell_tile_data(Vector2(x, y) + Vector2(pl_mappos))
+			var tiledata = $"/root/Main/MapTile".get_cell_tile_data(Vector2(x, y) + Vector2(onmap_pos))
 			if tiledata:
 				#print("tile data", x, y)
 				#print(tiledata.get_custom_data("kind"))
@@ -127,9 +145,17 @@ func _send_request():
 	var viewitem: Array[int] = []
 	for x in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
 		for y in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
-			var tiledata = $"/root/Main/ItemTile".get_cell_tile_data(Vector2(x, y) + Vector2(pl_mappos))
+			var tiledata = $"/root/Main/ItemTile".get_cell_tile_data(Vector2(x, y) + Vector2(onmap_pos))
 			if tiledata:
-				viewitem.push_back(tiledata.get_custom_data("kind"))
+				var itemid = tiledata.get_custom_data("kind")
+				viewitem.push_back(itemid)
+				if viewitem_catch.has(itemid):
+					# 短い距離のやつが見つかれば更新
+					if Vector2(x, y).length_squared() < viewitem_catch[itemid].length_squared():
+						viewitem_catch[itemid] = Vector2(x, y)
+				else:
+					# なければ作成
+					viewitem_catch[itemid] = Vector2(x, y)
 			else:
 				viewitem.push_back(-1)
 	var data = {

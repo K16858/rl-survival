@@ -1,0 +1,90 @@
+[gd_scene load_steps=11 format=3 uid="uid://ccuuoy4o5fgbr"]
+
+[ext_resource type="Script" uid="uid://cqhrhbnotu708" path="res://script/UI/status_icons.gd" id="1_6u1qm"]
+[ext_resource type="Texture2D" uid="uid://oisqyekc4wit" path="res://assets/img/icon/hp.png" id="1_sklv8"]
+[ext_resource type="Texture2D" uid="uid://c4bojfj7ysed5" path="res://assets/img/icon/bread.png" id="2_6u1qm"]
+[ext_resource type="Texture2D" uid="uid://8vy1jsjpbp3t" path="res://assets/img/icon/water.png" id="3_853qp"]
+[ext_resource type="Texture2D" uid="uid://dqh21jj8o5l8x" path="res://assets/img/icon/temperature.png" id="4_1bmnj"]
+[ext_resource type="Texture2D" uid="uid://5ourh5wyae25" path="res://assets/img/icon/stamina.png" id="5_m6vhi"]
+[ext_resource type="Texture2D" uid="uid://bjrild0ebigg" path="res://assets/img/icon/stress.png" id="6_t48tr"]
+[ext_resource type="Texture2D" uid="uid://4kvfovh4svcs" path="res://assets/img/icon/sleepy.png" id="7_853qp"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_8amel"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_sklv8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_6u1qm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_853qp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_1bmnj")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_m6vhi")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_853qp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_t48tr")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_853qp"]
+size = Vector2(245, 52)
+
+[node name="StatusIcon" type="Node2D"]
+script = ExtResource("1_6u1qm")
+
+[node name="Icon1" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_8amel")
+
+[node name="Icon2" type="AnimatedSprite2D" parent="."]
+position = Vector2(48, 0)
+sprite_frames = SubResource("SpriteFrames_8amel")
+frame = 1
+
+[node name="Icon3" type="AnimatedSprite2D" parent="."]
+position = Vector2(98, 0)
+sprite_frames = SubResource("SpriteFrames_8amel")
+frame = 2
+
+[node name="Icon4" type="AnimatedSprite2D" parent="."]
+position = Vector2(148, 0)
+sprite_frames = SubResource("SpriteFrames_8amel")
+frame = 3
+
+[node name="Icon5" type="AnimatedSprite2D" parent="."]
+position = Vector2(198, 0)
+sprite_frames = SubResource("SpriteFrames_8amel")
+frame = 4
+frame_progress = 0.211273
+
+[node name="ClickableArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ClickableArea"]
+position = Vector2(98.5, 0)
+shape = SubResource("RectangleShape2D_853qp")
+
+[node name="Tooltip" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -25.0
+offset_top = -26.0
+offset_right = 15.0
+offset_bottom = 14.0
+scale = Vector2(6.13948, 1.27149)
+tooltip_text = "You can use 10 points to recover."
+mouse_filter = 1
+
+[connection signal="input_event" from="ClickableArea" to="." method="_on_clickable_area_input_event"]
+[connection signal="mouse_entered" from="ClickableArea" to="." method="_on_clickable_area_mouse_entered"]
+[connection signal="mouse_exited" from="ClickableArea" to="." method="_on_clickable_area_mouse_exited"]

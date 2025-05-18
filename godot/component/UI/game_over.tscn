@@ -1,0 +1,68 @@
+[gd_scene load_steps=7 format=3 uid="uid://uaic66pw8uv8"]
+
+[ext_resource type="Script" uid="uid://b0cpopnra82i6" path="res://script/UI/game_over.gd" id="1_u214h"]
+[ext_resource type="Texture2D" uid="uid://sdtvbsqxvvhs" path="res://assets/img/effect/gameover.png" id="2_ybsjl"]
+
+[sub_resource type="Animation" id="Animation_ywnh7"]
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Gameover:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.633333, 0.933333),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, 367), Vector2(0, 156), Vector2(0, 184)]
+}
+
+[sub_resource type="Animation" id="Animation_6ctop"]
+resource_name = "gameover"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Gameover:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.633333, 0.933333),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, 367), Vector2(0, 156), Vector2(0, 184)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_kymrp"]
+_data = {
+&"RESET": SubResource("Animation_ywnh7"),
+&"gameover": SubResource("Animation_6ctop")
+}
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u214h"]
+bg_color = Color(0, 0, 0, 1)
+
+[node name="GameOver" type="Node2D"]
+script = ExtResource("1_u214h")
+
+[node name="Gameover" type="Sprite2D" parent="."]
+texture = ExtResource("2_ybsjl")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_kymrp")
+}
+
+[node name="Button" type="Button" parent="."]
+offset_left = -104.0
+offset_top = 357.0
+offset_right = 92.0
+offset_bottom = 407.0
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxFlat_u214h")
+text = "Restart"
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 0.5
+
+[connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_animation_player_animation_finished"]
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

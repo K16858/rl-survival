@@ -1,0 +1,35 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="rl-survival"
+run/main_scene="uid://b0l13vbs1vl83"
+config/features=PackedStringArray("4.4", "Forward Plus")
+boot_splash/show_image=false
+config/icon="uid://b467peksih7vf"
+
+[autoload]
+
+SceneManager="*res://script/util/scene_manager.gd"
+
+[display]
+
+window/size/viewport_width=480
+window/size/viewport_height=480
+window/stretch/mode="viewport"
+
+[input]
+
+click={
+"deadzone": 0.2,
+"events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":1,"position":Vector2(219, 23),"global_position":Vector2(228, 71),"factor":1.0,"button_index":1,"canceled":false,"pressed":true,"double_click":true,"script":null)
+]
+}

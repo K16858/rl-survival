@@ -1,0 +1,65 @@
+[gd_scene load_steps=7 format=3 uid="uid://dh8l3fufodkqj"]
+
+[ext_resource type="Texture2D" uid="uid://v7wh8ihxb7kg" path="res://assets/img/UI/menu.png" id="1_dv87n"]
+[ext_resource type="Script" uid="uid://b6cdlo2cujnfd" path="res://component/UI/menu.gd" id="1_u6od2"]
+[ext_resource type="Texture2D" uid="uid://1sjxh44dlxwl" path="res://assets/img/icon/good.png" id="2_i3ood"]
+[ext_resource type="Texture2D" uid="uid://tfmojjw1didx" path="res://assets/img/icon/bad.png" id="3_u6od2"]
+[ext_resource type="Texture2D" uid="uid://xxnhetww2kns" path="res://assets/img/UI/boat.png" id="5_dba25"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6vnth"]
+bg_color = Color(0.635294, 0.635294, 0.635294, 0.905882)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+
+[node name="Menu" type="Node2D"]
+scale = Vector2(3, 3)
+script = ExtResource("1_u6od2")
+
+[node name="Panel" type="Panel" parent="."]
+offset_left = 10.0
+offset_top = -26.0
+offset_right = 208.0
+offset_bottom = 91.0
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_6vnth")
+
+[node name="OpenButton" type="TextureButton" parent="Panel"]
+layout_mode = 0
+offset_left = -22.0
+offset_top = -2.0
+offset_right = 3.0
+offset_bottom = 48.0
+tooltip_text = "open menu"
+texture_normal = ExtResource("1_dv87n")
+
+[node name="Good" type="TextureButton" parent="Panel"]
+visible = false
+layout_mode = 0
+offset_left = 41.6667
+offset_top = 8.66667
+offset_right = 91.6667
+offset_bottom = 58.6667
+texture_normal = ExtResource("2_i3ood")
+
+[node name="Bad" type="TextureButton" parent="Panel"]
+visible = false
+layout_mode = 0
+offset_left = 110.333
+offset_top = 6.0
+offset_right = 160.333
+offset_bottom = 56.0
+texture_normal = ExtResource("3_u6od2")
+
+[node name="Escape" type="TextureButton" parent="Panel"]
+layout_mode = 0
+offset_left = 73.6667
+offset_top = 27.3333
+offset_right = 123.666
+offset_bottom = 77.3333
+tooltip_text = "Use 100 points to escape from here (You Win!)"
+texture_normal = ExtResource("5_dba25")
+
+[connection signal="pressed" from="Panel/OpenButton" to="." method="_on_open_button_pressed"]

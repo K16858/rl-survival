@@ -1,0 +1,26 @@
+[gd_resource type="TileSet" load_steps=4 format=3 uid="uid://bd38kjdty6u2p"]
+
+[ext_resource type="Texture2D" uid="uid://87orq8d2e2ns" path="res://assets/img/object/MapTile(50×50).png" id="1_wg7ja"]
+
+[sub_resource type="TileMapPattern" id="TileMapPattern_wg7ja"]
+tile_data = PackedInt32Array(0, 65538, 0)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_0ha60"]
+texture = ExtResource("1_wg7ja")
+texture_region_size = Vector2i(50, 50)
+0:0/0 = 0
+1:0/0 = 0
+1:0/0/custom_data_0 = 1
+2:0/0 = 0
+2:0/0/custom_data_0 = 2
+3:0/0 = 0
+3:0/0/custom_data_0 = 3
+4:0/0 = 0
+4:0/0/custom_data_0 = 4
+
+[resource]
+tile_size = Vector2i(50, 50)
+custom_data_layer_0/name = "kind"
+custom_data_layer_0/type = 2
+sources/2 = SubResource("TileSetAtlasSource_0ha60")
+pattern_0 = SubResource("TileMapPattern_wg7ja")

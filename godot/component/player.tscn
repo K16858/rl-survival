@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://cmw8sg4pdmj3t"]
+[gd_scene load_steps=10 format=3 uid="uid://cmw8sg4pdmj3t"]
 
 [ext_resource type="Script" uid="uid://brnxr8360u01u" path="res://script/player/player.gd" id="1_ju346"]
 [ext_resource type="Texture2D" uid="uid://b467peksih7vf" path="res://assets/img/bot.png" id="1_kdf4k"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://c18so8ftl3la2" path="res://assets/img/dead2.png" id="4_6i8qt"]
 [ext_resource type="Texture2D" uid="uid://kyogmpdbi2ra" path="res://assets/img/bot_drink.png" id="6_jkug0"]
 [ext_resource type="Texture2D" uid="uid://b0x8w4gw5optm" path="res://assets/img/bot_eat.png" id="7_skmty"]
+[ext_resource type="Texture2D" uid="uid://17vp2om0b8y8" path="res://assets/img/bot_sleep.png" id="8_skmty"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_ju346"]
 animations = [{
@@ -50,6 +51,14 @@ animations = [{
 "loop": true,
 "name": &"eat",
 "speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("8_skmty")
+}],
+"loop": true,
+"name": &"sleep",
+"speed": 5.0
 }]
 
 [node name="Player" type="Node2D"]
@@ -60,7 +69,7 @@ script = ExtResource("1_ju346")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(1, -52)
 sprite_frames = SubResource("SpriteFrames_ju346")
-animation = &"drink"
+animation = &"sleep"
 
 [node name="HTTPRequest" type="HTTPRequest" parent="."]
 use_threads = true

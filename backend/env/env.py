@@ -504,6 +504,44 @@ class IslandEnvironment:
                         color, 
                         (screen_j, screen_i, self.tile_size, self.tile_size)
                     )
+                    # --- Draw items with different colors by type ---
+                    for item_dict in self.items:
+                        item_pos = item_dict['pos']
+                        if int(item_pos[0]) == i and int(item_pos[1]) == j:
+                            item_type = item_dict['item'].item_type
+                            # WOOD=orange, STONE=gray, FRUIT=red, その他=yellow
+                            if item_type.name == "WOOD":
+                                item_color = (255, 140, 0)    # orange
+                            elif item_type.name == "STONE":
+                                item_color = (120, 120, 120)  # gray
+                            elif item_type.name == "FRUIT":
+                                item_color = (220, 30, 30)    # red
+                            else:
+                                item_color = (255, 255, 0)    # yellow (default)
+                            pygame.draw.circle(
+                                self.screen,
+                                item_color,
+                                (screen_j + self.tile_size // 2, screen_i + self.tile_size // 2),
+                                max(2, self.tile_size // 3)
+                            )
+                    # --- Draw tents (purple) ---
+                    for tent_pos in self.tents:
+                        if int(tent_pos[0]) == i and int(tent_pos[1]) == j:
+                            pygame.draw.rect(
+                                self.screen,
+                                (150, 100, 200),  # lighter purple for tents
+                                (screen_j + self.tile_size // 4, screen_i + self.tile_size // 4,
+                                 self.tile_size // 2, self.tile_size // 2)
+                            )
+                    # --- Draw tile objects ---
+                    # If you use a Tile class 2D array, enable below:
+                    # for obj in self.tile_map[i][j].objects:
+                    #     pygame.draw.circle(
+                    #         self.screen,
+                    #         obj.get_color(),
+                    #         (screen_j + self.tile_size // 2, screen_i + self.tile_size // 2),
+                    #         max(2, self.tile_size // 3)
+                    #     )
         
         # Draw agent (red circle)
         agent_screen_i = int((i_center - (i_center - view_radius)) * self.tile_size)

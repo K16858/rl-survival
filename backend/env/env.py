@@ -263,7 +263,19 @@ class IslandEnvironment:
             i, j = random.choice(valid_positions)
             # Place in center of tile for continuous movement
             self.agent_pos = (i + 0.5, j + 0.5)
-            
+        
+        # reset survivors
+        for survivor in self.survivors:
+            survivor.health = 1.0
+            survivor.satiety = 1.0
+            survivor.hydration = 1.0
+            survivor.temperature = 0.5
+            survivor.stamina = 1.0
+            survivor.rest = 1.0
+            survivor.stress = 0.0
+            survivor.is_alive = True
+            survivor.days_survived = 0
+        self.time_passed = 0.0
         return self._get_observation()
     
     def step(self, action_idx):

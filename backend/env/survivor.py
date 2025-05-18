@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Dict, List, Any, Tuple
 import numpy as np
 import random
-from item import Item, ItemType
+from env.item import Item, ItemType
 from env.tile import TileType
 
 class Survivor:

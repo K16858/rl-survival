@@ -126,6 +126,9 @@ class PPOAgent:
         # Convert all episode data to tensors
         device = self.device
         visions = torch.from_numpy(np.array(self.memory.visions)).float().to(device)
+        # チャンネル次元がなければ追加
+        if visions.dim() == 3:
+            visions = visions.unsqueeze(1)
         statuses = torch.from_numpy(np.array(self.memory.statuses)).float().to(device)
         actions = torch.tensor(self.memory.actions, dtype=torch.long).to(device)
         old_probs = torch.tensor(self.memory.probs, dtype=torch.float).to(device)
@@ -200,4 +203,3 @@ class PPOAgent:
         checkpoint = torch.load(path, map_location=self.device)
         self.actor_critic.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        

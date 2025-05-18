@@ -209,7 +209,7 @@ func _use():
 			$AnimatedSprite2D.play("default")
 			
 	# remove処理
-	$"/root/Main/ItemTile".erase_cell(item_pos + onmap_pos)
+	#$"/root/Main/ItemTile".erase_cell(item_pos + onmap_pos)
 	_send_request()
 
 func _send_request():

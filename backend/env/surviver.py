@@ -697,6 +697,96 @@ class Survivor:
             
         return report
     
+    def perform_rl_action(self, action_name: str) -> Tuple[bool, float]:
+        """Execute action for reinforcement learning
+        
+        Args:
+            action_name: Name of action to execute
+            
+        Returns:
+            Tuple[bool, float]: (success status, reward value)
+        """
+        # Check if action is available
+        available_actions = self.get_action_space()
+        if action_name not in available_actions or not available_actions[action_name]:
+            return False, -0.1  # Negative reward for selecting unavailable action
+        
+        # Execute action and calculate reward
+        if action_name == "eat":
+            success = self.eat()
+            # Reward based on satiety increase
+            reward = 0.3 * success
+            return success, reward
+            
+        elif action_name == "move_to_water_and_drink":
+            prev_hydration = self.hydration
+            success = self.move_to_water_and_drink()
+            # Reward proportional to hydration increase
+            hydration_gain = max(0, self.hydration - prev_hydration)
+            reward = 0.5 * hydration_gain if success else -0.05
+            return success, reward
+            
+        elif action_name == "collect_nearest_item":
+            prev_inv_size = len(self.inventory)
+            success = self.collect_nearest_item()
+            # Reward for item acquisition
+            if success and len(self.inventory) > prev_inv_size:
+                reward = 0.4
+            else:
+                reward = -0.05
+            return success, reward
+            
+        elif action_name == "move_to_tent_and_rest":
+            prev_rest = self.rest
+            prev_stamina = self.stamina
+            success = self.move_to_tent_and_rest()
+            # Reward proportional to rest and stamina recovery
+            rest_gain = max(0, self.rest - prev_rest)
+            stamina_gain = max(0, self.stamina - prev_stamina)
+            reward = 0.3 * (rest_gain + stamina_gain) if success else -0.05
+            return success, reward
+            
+        else:
+            return False, 0.0  # Unknown action
+    
+    def get_state_for_learning(self) -> Dict[str, float]:
+        """Get state vector for reinforcement learning
+        
+        Returns:
+            Dict[str, float]: State vector for learning
+        """
+        # Get basic status
+        state = self.get_status_report()
+        
+        # Add inventory information
+        state['inventory_count'] = len(self.inventory)
+        state['inventory_weight'] = sum(item.weight for item in self.inventory)
+        state['inventory_fullness'] = len(self.inventory) / self.max_inventory_size
+        
+        # Add environment information
+        if self.environment:
+            # Check if water, tent, or items are visible
+            visible_tiles = self.environment.get_visible_tiles(self.environment.agent_pos)
+            state['water_visible'] = int(any(tile == TileType.RIVER for tile in visible_tiles.values()))
+            state['tent_visible'] = int(any(tile == TileType.TENT for tile in visible_tiles.values()))
+            state['items_visible'] = int(len(self.environment.get_visible_items(self.environment.agent_pos)) > 0)
+            
+            # Current tile information
+            current_tile = self.environment.get_tile_at_position(*self.environment.agent_pos)
+            for tile_type in [TileType.BEACH, TileType.GRASS, TileType.RIVER, TileType.MOUNTAIN]:
+                state[f'on_{tile_type.name.lower()}'] = int(current_tile == tile_type)
+        else:
+            # Default values when environment is not available
+            state['water_visible'] = 0
+            state['tent_visible'] = 0
+            state['items_visible'] = 0
+            state['on_beach'] = 0
+            state['on_grass'] = 0
+            state['on_river'] = 0
+            state['on_mountain'] = 0
+            
+        return state
+    
     def __str__(self) -> str:
         """Return string representation of survivor status"""
         status = []

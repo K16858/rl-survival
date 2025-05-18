@@ -15,7 +15,7 @@ const WORLD_MAX_Y: int = 100;
 const X_per_Tile = 50;
 const Y_pre_Tile = 50;
 
-const ITEM_MARGIN:int = 5;
+const ITEM_MARGIN:int = 4;
 
 #TODO 要調整
 const SECONDperDAY:float = 60;
@@ -58,8 +58,12 @@ func _ready():
 			if(item_margin_counter <= 0 and world_tile_array[i][l] != 3 and world_tile_array[i][l] != 4):
 				if (randf_range(0,100) >= 50):
 					item_margin_counter = ITEM_MARGIN;
-					var item_kind = randi_range(0,4);
-					change_item_layer(i,l,item_kind);
+					if(randi_range(0,3) == 1):
+						var item_kind = randi_range(6,7);
+						change_item_layer(i,l,item_kind);
+					else:
+						var item_kind = randi_range(0,4);
+						change_item_layer(i,l,item_kind);
 			else:
 				world_object_array[i][l] = 0;
 			

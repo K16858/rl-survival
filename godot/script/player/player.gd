@@ -150,9 +150,18 @@ func _pick_aftermove(itemid: int, item_pos: Vector2):
 	match itemid:
 		0: 
 			nthirsty.addres(50./nthirsty_use_cycle)
+			$AnimatedSprite2D.play("drink")
+			#INFO 一秒待機、この実装で良いのかわからん
+			await get_tree().create_timer(1).timeout
+			$AnimatedSprite2D.play("default")
 			_send_request()
 			return
-		1: satiety.addres(50./satiety_use_cycle) # 
+		1: 
+			satiety.addres(50./satiety_use_cycle) 
+			$AnimatedSprite2D.play("eat")
+			#INFO 一秒待機、この実装で良いのかわからん
+			await get_tree().create_timer(1).timeout
+			$AnimatedSprite2D.play("default")
 		6: pass
 		7: 
 			# 睡眠

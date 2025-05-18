@@ -189,8 +189,11 @@ func _pick_aftermove(itemid: int, item_pos: Vector2):
 			#var tween = self.create_tween()
 			#tween.tween_interval
 			#
+			$AnimatedSprite2D.play("sleep")
+			await get_tree().create_timer(5).timeout
 			ndrowsiness.addres(-1)
 			stamina.addres(1)
+			$AnimatedSprite2D.play("default")
 			
 	# remove処理
 	$"/root/Main/ItemTile".erase_cell(item_pos + onmap_pos)

@@ -13,8 +13,8 @@ MAP_SIZE = 500  # Size of the island map
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from env.env import IslandEnvironment, TileType
-from agent.ppo_agent import PPOAgent
-from agent.utils import plot_training_progress, create_experiment_dir, save_hyperparameters
+from train.ppo_agent import PPOAgent
+from train.utils import plot_training_progress, create_experiment_dir, save_hyperparameters
 
 def preprocess_vision(vision):
     """Normalize vision array for CNN input"""

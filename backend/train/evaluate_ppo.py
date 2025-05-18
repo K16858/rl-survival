@@ -11,9 +11,9 @@ import pygame
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from env.env import IslandEnvironment, TileType
-from agent.ppo_agent import PPOAgent
-from agent.train_ppo import preprocess_vision, preprocess_status
-from agent.utils import plot_vision, plot_training_progress
+from train.ppo_agent import PPOAgent
+from train.train_ppo import preprocess_vision, preprocess_status
+from train.utils import plot_vision, plot_training_progress
 
 def evaluate_ppo_agent(
     model_path: str,

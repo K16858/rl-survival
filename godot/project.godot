@@ -13,6 +13,7 @@ config_version=5
 config/name="rl-survival"
 run/main_scene="uid://b0l13vbs1vl83"
 config/features=PackedStringArray("4.4", "Forward Plus")
+boot_splash/show_image=false
 config/icon="uid://b467peksih7vf"
 
 [autoload]

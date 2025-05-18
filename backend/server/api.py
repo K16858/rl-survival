@@ -99,25 +99,28 @@ BATCH_SIZE = 64     # Batch size
 
 # Action name mapping
 ACTION_NAMES = [
-    "右に移動",      # Right
-    "右下に移動",    # Down-Right
-    "下に移動",      # Down
-    "左下に移動",    # Down-Left
-    "左に移動",      # Left
-    "左上に移動",    # Up-Left
-    "上に移動",      # Up
-    "右上に移動",    # Up-Right
+    "Move Right",      # Right
+    "Move Down-Right", # Down-Right
+    "Move Down",       # Down
+    "Move Down-Left",  # Down-Left
+    "Move Left",       # Left
+    "Move Up-Left",    # Up-Left
+    "Move Up",         # Up
+    "Move Up-Right",   # Up-Right
+    "Use Item",        # Use inventory item
+    "Drink Water",     # Drink water from river
+    "Pick Up Item"     # Pick up nearest item
 ]
 
 # Initialize agent
-def init_agent(vision_shape=(11, 11), status_size=11, n_actions=8, model_path=None):
+def init_agent(vision_shape=(11, 11), status_size=11, n_actions=11, model_path=None):
     global agent, model_dir
     
     # Create agent
     agent = PPOAgent(
         vision_shape=vision_shape,
         status_size=status_size,
-        n_actions=n_actions,
+        n_actions=n_actions,  # Updated to 11 actions
         gamma=0.99,
         gae_lambda=0.95,
         policy_clip=0.2,

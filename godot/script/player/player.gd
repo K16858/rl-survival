@@ -45,6 +45,9 @@ var viewitem_catch: Dictionary[int, Vector2]
 # 一番近い水の場所(onmap)
 var nearest_water_pos: Vector2
 
+# itemidのint
+var inventory: Array[int]
+
 func _on_request_completed(result, response_code, headers, body):
 	var json = JSON.parse_string(body.get_string_from_utf8())
 	print(json)
@@ -54,6 +57,8 @@ func _on_request_completed(result, response_code, headers, body):
 		_pick(json["next"]["item"])
 	elif (json["next"]["kind"] == "drink"):
 		_drink()
+	elif (json["next"]["kind"] == "use"):
+		_use()
 	#_send_request()
 
 func _ready():
@@ -141,23 +146,7 @@ func _pick(itemid: int):
 
 func _pick_aftermove(itemid: int, item_pos: Vector2):
 	# itemごとの処理
-	match itemid:
-		1: 
-			satiety.addres(50./satiety_use_cycle) 
-			$AnimatedSprite2D.play("eat")
-			#INFO 一秒待機、この実装で良いのかわからん
-			await get_tree().create_timer(1).timeout
-			$AnimatedSprite2D.play("default")
-		6: pass
-		7: 
-			# 睡眠
-			# 時間経過 TODO かなり厄介そうなので
-			#var tween = self.create_tween()
-			#tween.tween_interval
-			#
-			ndrowsiness.addres(1)
-			stamina.addres(1)
-			
+	inventory.push_back(itemid)		
 	# remove処理
 	$"/root/Main/ItemTile".erase_cell(item_pos + onmap_pos)
 	_send_request()
@@ -177,6 +166,25 @@ func _drink_aftermove():
 	$AnimatedSprite2D.play("default")
 	_send_request()
 	return
+	
+func _use():
+	var itemid = inventory.pop_front()
+	match itemid:
+		1: 
+			satiety.addres(50./satiety_use_cycle) 
+			$AnimatedSprite2D.play("eat")
+			#INFO 一秒待機、この実装で良いのかわからん
+			await get_tree().create_timer(1).timeout
+			$AnimatedSprite2D.play("default")
+		6: pass
+		7: 
+			# 睡眠
+			# 時間経過 TODO かなり厄介そうなので
+			#var tween = self.create_tween()
+			#tween.tween_interval
+			#
+			ndrowsiness.addres(1)
+			stamina.addres(1)
 	
 
 

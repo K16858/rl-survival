@@ -185,15 +185,17 @@ func _send_request():
 	# 距離キャッシュの初期化
 	viewitem_catch = {}
 	nearest_water_pos = Vector2.INF
-	var viewtile: Array[int] = []
+	var viewtile: Array = []
 	for x in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
+		
+		var viewtile_raw: Array[int] = []
 		for y in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
 			var tiledata = $"/root/Main/MapTile".get_cell_tile_data(Vector2(x, y) + Vector2(onmap_pos))
 			if tiledata:
 				#print("tile data", x, y)
 				#print(tiledata.get_custom_data("kind"))
 				var cellkind: int = tiledata.get_custom_data("kind")
-				viewtile.push_back(cellkind)
+				viewtile_raw.push_back(cellkind)
 				if cellkind == WATER_CELL_ID:
 					if nearest_water_pos:
 						# 短い距離のやつが見つかれば更新
@@ -202,14 +204,16 @@ func _send_request():
 					else:
 						# そうでなければ作成
 						nearest_water_pos = Vector2(x, y)
+		viewtile.push_back(viewtile_raw)
 	# アイテム情報の取得
-	var viewitem: Array[int] = []
+	var viewitem: Array = []
 	for x in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
+		var viewitem_raw: Array[int] = []
 		for y in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
 			var tiledata = $"/root/Main/ItemTile".get_cell_tile_data(Vector2(x, y) + Vector2(onmap_pos))
 			if tiledata:
 				var itemid = tiledata.get_custom_data("kind")
-				viewitem.push_back(itemid)
+				viewitem_raw.push_back(itemid)
 				if viewitem_catch.has(itemid):
 					# 短い距離のやつが見つかれば更新
 					if Vector2(x, y).length_squared() < viewitem_catch[itemid].length_squared():
@@ -218,7 +222,8 @@ func _send_request():
 					# なければ作成
 					viewitem_catch[itemid] = Vector2(x, y)
 			else:
-				viewitem.push_back(-1)
+				viewitem_raw.push_back(-1)
+		viewitem.push_back(viewitem_raw)
 	var data = {
 		"hp": hp.getres(),
 		"satiety": satiety.getres(),

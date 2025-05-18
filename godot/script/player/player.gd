@@ -14,6 +14,8 @@ extends Node2D
 @export var nthirsty_use_cycle: int = 60
 @export var ndrowsiness_use_cycle: int = 200
 
+@export var body_temperature_use_cycle: Array[int] = [50,100]
+
 const WATER_CELL_ID: int = 3
 
 signal update_status(status: Array[float])
@@ -92,6 +94,16 @@ func _process(delta):
 		satiety.subres(1. / satiety_use_cycle)
 		nthirsty.subres(1. / nthirsty_use_cycle)
 		ndrowsiness.subres(1. / ndrowsiness_use_cycle)
+		
+		var current_grid:Vector2i = map.local_to_map(position)
+		var tiledata:TileMapLayer = $"/root/Main/ItemTile".get_cell_tile_data(Vector2i(current_grid.x,current_grid.y))
+		var tileid = tiledata.get_custom_data("kind")
+		
+		if(tileid == 3):
+			body_temperature.subres(1./ body_temperature_use_cycle[1]);
+		else:
+			body_temperature.subres(1./ body_temperature_use_cycle[0]);
+		
 		
 		# 気温処理
 		# TODO

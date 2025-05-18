@@ -3,7 +3,7 @@ class_name Player
 extends Node2D
 
 @export var speed: float = 200.0
-@export var server_url: String = "http://127.0.0.1:8000/reasoning"
+@export var server_url: String = "http://127.0.0.1:8000/api/get_action"
 @export var map: TileMapLayer
 
 @export var resource_baseline: float = 0.7

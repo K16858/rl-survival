@@ -106,6 +106,7 @@ func _process(delta):
 			if(is_alive):
 				is_alive = false
 				gameover.emit()
+				$SEPlayer.play_se("down")
 				$AnimatedSprite2D.play("dead")
 				$ShowStatus.disabled = true;
 	

@@ -5,6 +5,7 @@ from env.tile import TileType
 import random
 from typing import Tuple, Dict, Any, List
 import sys
+from env.survivor import Survivor 
 
 class IslandEnvironment:
     def __init__(self, size=500, seed=None, tile_size=3, fps=30, movement_type="continuous", window_size=600):
@@ -56,6 +57,17 @@ class IslandEnvironment:
         # Generate the map
         self._generate_map()
         
+        # Initialize survivors list with a default survivor
+        self.survivors: List[Survivor] = [Survivor(name="Islander", environment=self)]
+        # Set survivor's position to match agent's starting position
+        self.time_passed = 0.0  # Track game time in hours
+        
+    def add_survivor(self, name: str) -> Survivor:
+        """Add a new survivor to the environment"""
+        new_survivor = Survivor(name=name, environment=self)
+        self.survivors.append(new_survivor)
+        return new_survivor
+
     def _generate_map(self):
         """Generate the island map"""
         # Use Perlin noise for natural terrain generation
@@ -298,13 +310,26 @@ class IslandEnvironment:
         if tile_type != TileType.OCEAN:
             self.agent_pos = (new_i, new_j)
         
+        # Update time and survivor
+        time_delta = 0.1  # Each step represents 0.1 hour (6 minutes)
+        self.time_passed += time_delta
+        for survivor in self.survivors:
+            survivor.update(time_delta)
+        
         # Calculate reward
         reward = self._calculate_reward()
         
-        # Check for episode termination (not used in this example)
-        done = False
+        # Check for episode termination (player dies)
+        done = not all(survivor.is_alive for survivor in self.survivors)
         
-        return self._get_observation(), reward, done, {}
+        # Include survivor status in info
+        info = {
+            'survivor_status': [survivor.get_status_report() for survivor in self.survivors],
+            'inventory': [survivor.get_inventory_report() for survivor in self.survivors],
+            'time_passed': self.time_passed
+        }
+        
+        return self._get_observation(), reward, done, info
     
     def get_tile_at_position(self, i, j):
         """Get tile type at continuous position
@@ -352,19 +377,16 @@ class IslandEnvironment:
         }
     
     def _calculate_reward(self):
-        """Simple reward function example"""
-        # Get current tile type
-        current_tile = self.get_tile_at_position(*self.agent_pos)
-        
-        # Return reward based on tile type
-        if current_tile == TileType.BEACH:
-            return 0.5  # Beach reward
-        elif current_tile == TileType.GRASS:
-            return 1.0  # Grass reward
-        elif current_tile == TileType.RIVER:
-            return 0.7  # River reward
-        else:
-            return 0.0  # Other areas
+        """Reward based on survivor stats and exploration encouragement"""
+        # Average survivor stats
+        avg_health = np.mean([s.health for s in self.survivors])
+        avg_satiety = np.mean([s.satiety for s in self.survivors])
+        avg_hydration = np.mean([s.hydration for s in self.survivors])
+        # Weighted stat reward
+        stat_reward = 0.4 * avg_health + 0.3 * avg_satiety + 0.3 * avg_hydration
+        # Small penalty to discourage idling
+        exploration_penalty = -0.01
+        return stat_reward + exploration_penalty
     
     def render(self, mode='human'):
         """Visualize the environment"""
@@ -446,6 +468,25 @@ class IslandEnvironment:
         
         # Position minimap in bottom right
         self.screen.blit(minimap_surface, (self.display_size - minimap_size - 10, self.display_size - minimap_size - 10))
+        
+        # Render survivor status
+        if pygame.font:
+            font = pygame.font.Font(None, 24)
+            
+            # Display survivor stats
+            status_lines = [
+                f"Day: {int(self.time_passed / 24) + 1}, Hour: {int(self.time_passed % 24)}",
+                f"Health: {self.survivor.health:.2f}",
+                f"Satiety: {self.survivor.satiety:.2f}",
+                f"Hydration: {self.survivor.hydration:.2f}",
+                f"Stamina: {self.survivor.stamina:.2f}"
+            ]
+            
+            y_offset = 10
+            for line in status_lines:
+                text = font.render(line, True, (255, 255, 255))
+                self.screen.blit(text, (10, y_offset))
+                y_offset += 25
         
         # Update display:
         pygame.display.flip()

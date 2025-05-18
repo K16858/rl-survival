@@ -7,6 +7,8 @@ var world_object_array:Array = []
 var day: int = 0;
 var time: float = 0;
 
+var delta_count:float
+
 const WORLD_MAX_X: int = 100;
 const WORLD_MAX_Y: int = 100;
 
@@ -14,6 +16,9 @@ const X_per_Tile = 50;
 const Y_pre_Tile = 50;
 
 const ITEM_MARGIN:int = 5;
+
+#TODO 要調整
+const SECONDperDAY:float = 60;
 
 enum MapTileEnum {
 	ground,
@@ -27,6 +32,8 @@ enum MapTileEnum {
 @onready var ItemTileNode: TileMapLayer = $ItemTile
 
 func _ready():
+	day = 1;
+	time = 0;
 	for i in range(WORLD_MAX_X):
 		var row = []
 		for j in range(WORLD_MAX_Y):
@@ -65,3 +72,14 @@ func change_item_layer(x:int,y:int,kind:int):
 func delete_item_layer(x:int,y:int):
 	world_object_array[x][y] = 0
 	ItemTileNode.erase_cell(Vector2i(x-50,y-50))
+	
+func _process(delta):
+	delta_count += delta;
+	if(delta_count >= 1):
+		delta_count -= 1;
+		time +=1;
+		
+		if(time >= SECONDperDAY):
+			time += 60;
+			day += 1;
+			$Player/Info/Day/Time.text = "Day:" + str(day);

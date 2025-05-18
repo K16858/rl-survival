@@ -10,9 +10,9 @@ extends Node2D
 
 @export var hp_change_multi: float = 0.3
 
-@export var satiety_use_cycle: int = 50
-@export var nthirsty_use_cycle: int = 30
-@export var ndrowsiness_use_cycle: int = 100
+@export var satiety_use_cycle: int = 100
+@export var nthirsty_use_cycle: int = 60
+@export var ndrowsiness_use_cycle: int = 200
 
 
 signal  update_status(status:Array[float])
@@ -43,7 +43,7 @@ func _on_request_completed(result, response_code, headers, body):
 	var json = JSON.parse_string(body.get_string_from_utf8())
 	print(json)
 	if (json["next"]["kind"] == "move"):
-		_move(json["next"]["x"], json["next"]["y"])
+		_move(json["next"]["x"], json["next"]["y"], _send_request)
 	elif (json["next"]["kind"] == "pick"):
 		_pick(json["next"]["item"])
 	#_send_request()
@@ -98,14 +98,14 @@ func _process(delta):
 
 # タイルマップ上の移動操作
 # rel = falseで絶対座標で行動
-func _move(x: int, y: int, rel: bool = true):
+func _move(x: int, y: int, cb: Callable, rel: bool = true):
 	if rel:
 		var distination_pos = map.map_to_local(Vector2(map.local_to_map(position)) + Vector2(x, y))
 		var distance = distination_pos.distance_to(position)
 		var direction = position.direction_to(distination_pos);
 		var tween = self.create_tween()
 		tween.tween_property(self, "position", distination_pos, distance / speed)
-		tween.tween_callback(_send_request)
+		tween.tween_callback(cb)
 		
 		if(direction.x>=0):
 			$AnimatedSprite2D.flip_h = false;
@@ -116,14 +116,32 @@ func _move(x: int, y: int, rel: bool = true):
 		print("not yet impled non rel move")
 
 func _pick(itemid: int):
-	var item_pos = viewitem_catch[itemid]
-	if !item_pos:
-		# なければ早期ret
-		return
-	_move(item_pos.x, item_pos.y)
-	# itemごとの処理
 	
+	if !viewitem_catch.has(itemid):
+		# なければ早期ret
+		_send_request()
+		return
+	var item_pos = viewitem_catch[itemid]
+	_move(item_pos.x, item_pos.y, _pick_aftermove.bind(itemid, item_pos))
+
+func _pick_aftermove(itemid: int, item_pos: Vector2):
+	# itemごとの処理
+	match itemid:
+		0: pass
+		1: satiety.addres(50./satiety_use_cycle) # 
+		6: pass
+		7: 
+			# 睡眠
+			# 時間経過 TODO かなり厄介そうなので
+			#var tween = self.create_tween()
+			#tween.tween_interval
+			#
+			ndrowsiness.addres(-1)
+			stamina.addres(1)
+			
 	# remove処理
+	$"/root/Main/ItemTile".erase_cell(item_pos + onmap_pos)
+	_send_request()
 
 func _send_request():
 	const header = ["Content-Type: application/json"]

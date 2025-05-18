@@ -178,7 +178,11 @@ func _pick_aftermove(itemid: int, item_pos: Vector2):
 			#INFO 一秒待機、この実装で良いのかわからん
 			await get_tree().create_timer(1).timeout
 			$AnimatedSprite2D.play("default")
-		6: pass
+		6: 
+			body_temperature.addres(50./satiety_use_cycle) 
+			#INFO 一秒待機、この実装で良いのかわからん
+			await get_tree().create_timer(1).timeout
+			$AnimatedSprite2D.play("default")
 		7: 
 			# 睡眠
 			# 時間経過 TODO かなり厄介そうなので

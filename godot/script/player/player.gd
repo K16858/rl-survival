@@ -3,7 +3,8 @@ class_name Player
 extends Node2D
 
 @export var speed: float = 200.0
-@export var server_url: String = "http://127.0.0.1:8000/reasoning"
+@export var server_url: String = "http://127.0.0.1:8000/api/get_action"
+@export var reward_url: String = "http://127.0.0.1:8000/api/learn"
 @export var map: TileMapLayer
 
 @export var resource_baseline: float = 0.7
@@ -47,13 +48,19 @@ var viewitem_catch: Dictionary[int, Vector2]
 # 一番近い水の場所(onmap)
 var nearest_water_pos: Vector2
 
+# itemidのint
+var inventory: Array[int]
+
 func _on_request_completed(result, response_code, headers, body):
 	var json = JSON.parse_string(body.get_string_from_utf8())
-	print(json)
 	if (json["next"]["kind"] == "move"):
 		_move(json["next"]["x"], json["next"]["y"], _send_request)
 	elif (json["next"]["kind"] == "pick"):
 		_pick(json["next"]["item"])
+	elif (json["next"]["kind"] == "drink"):
+		_drink()
+	elif (json["next"]["kind"] == "use"):
+		_use()
 	#_send_request()
 
 func _ready():
@@ -143,34 +150,40 @@ func _move(x: int, y: int, cb: Callable, rel: bool = true):
 		print("not yet impled non rel move")
 
 func _pick(itemid: int):
-	if itemid != 0:
-		if !viewitem_catch.has(itemid):
-			# なければ早期ret
-			_send_request()
-			return
-		var item_pos = viewitem_catch[itemid]
-		_move(item_pos.x, item_pos.y, _pick_aftermove.bind(itemid, item_pos))
-	else:
-		# itemid == 0を水に予約
-		if nearest_water_pos == Vector2.INF:
-			# なければ早期ret
-			_send_request()
-			return
-		_move(nearest_water_pos.x, nearest_water_pos.y, _pick_aftermove.bind(itemid, nearest_water_pos))
+	if !viewitem_catch.has(itemid):
+		# なければ早期ret
+		_send_request()
+		return
+	var item_pos = viewitem_catch[itemid]
+	_move(item_pos.x, item_pos.y, _pick_aftermove.bind(itemid, item_pos))
 		
 
 func _pick_aftermove(itemid: int, item_pos: Vector2):
 	# itemごとの処理
+	inventory.push_back(itemid)		
+	# remove処理
+	$"/root/Main/ItemTile".erase_cell(item_pos + onmap_pos)
+	_send_request()
+
+func _drink():
+	if nearest_water_pos == Vector2.INF:
+		# なければ早期ret
+		_send_request()
+		return
+	_move(nearest_water_pos.x, nearest_water_pos.y, _drink_aftermove)
+
+func _drink_aftermove():
+	nthirsty.addres(50./nthirsty_use_cycle)
+	$AnimatedSprite2D.play("drink")
+	#INFO 一秒待機、この実装で良いのかわからん
+	await get_tree().create_timer(1).timeout
+	$AnimatedSprite2D.play("default")
+	_send_request()
+	return
+	
+func _use():
+	var itemid = inventory.pop_front()
 	match itemid:
-		0: 
-			nthirsty.addres(50./nthirsty_use_cycle)
-			$AnimatedSprite2D.play("drink")
-			$SEPlayer.play_se("drink")
-			#INFO 一秒待機、この実装で良いのかわからん
-			await get_tree().create_timer(1).timeout
-			$AnimatedSprite2D.play("default")
-			_send_request()
-			return
 		1: 
 			satiety.addres(50./satiety_use_cycle) 
 			$AnimatedSprite2D.play("eat")
@@ -200,6 +213,7 @@ func _pick_aftermove(itemid: int, item_pos: Vector2):
 	_send_request()
 
 func _send_request():
+	_send_reward()
 	const header = ["Content-Type: application/json"]
 	# ---------------------------------------------------------視界取得------------------------------
 	const VIEW_SIZE = 11
@@ -208,15 +222,17 @@ func _send_request():
 	# 距離キャッシュの初期化
 	viewitem_catch = {}
 	nearest_water_pos = Vector2.INF
-	var viewtile: Array[int] = []
+	var viewtile: Array = []
 	for x in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
+		
+		var viewtile_raw: Array[int] = []
 		for y in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
 			var tiledata = $"/root/Main/MapTile".get_cell_tile_data(Vector2(x, y) + Vector2(onmap_pos))
 			if tiledata:
 				#print("tile data", x, y)
 				#print(tiledata.get_custom_data("kind"))
 				var cellkind: int = tiledata.get_custom_data("kind")
-				viewtile.push_back(cellkind)
+				viewtile_raw.push_back(cellkind)
 				if cellkind == WATER_CELL_ID:
 					if nearest_water_pos:
 						# 短い距離のやつが見つかれば更新
@@ -225,14 +241,16 @@ func _send_request():
 					else:
 						# そうでなければ作成
 						nearest_water_pos = Vector2(x, y)
+		viewtile.push_back(viewtile_raw)
 	# アイテム情報の取得
-	var viewitem: Array[int] = []
+	var viewitem: Array = []
 	for x in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
+		var viewitem_raw: Array[int] = []
 		for y in range(-(VIEW_SIZE/2), (VIEW_SIZE/2)+1):
 			var tiledata = $"/root/Main/ItemTile".get_cell_tile_data(Vector2(x, y) + Vector2(onmap_pos))
 			if tiledata:
 				var itemid = tiledata.get_custom_data("kind")
-				viewitem.push_back(itemid)
+				viewitem_raw.push_back(itemid)
 				if viewitem_catch.has(itemid):
 					# 短い距離のやつが見つかれば更新
 					if Vector2(x, y).length_squared() < viewitem_catch[itemid].length_squared():
@@ -241,7 +259,8 @@ func _send_request():
 					# なければ作成
 					viewitem_catch[itemid] = Vector2(x, y)
 			else:
-				viewitem.push_back(-1)
+				viewitem_raw.push_back(-1)
+		viewitem.push_back(viewitem_raw)
 	var data = {
 		"hp": hp.getres(),
 		"satiety": satiety.getres(),
@@ -258,6 +277,18 @@ func _send_request():
 		push_error("An error occurred in the HTTP request.")
 	print("send")
 
+
+func _send_reward():
+	const header = ["Content-Type: application/json"]
+	var data = {
+		"reward": hp.getres(),
+		"done": !is_alive,
+	}
+	var error = $HTTPRequest.request(reward_url, header, HTTPClient.METHOD_POST, JSON.stringify(data))
+	if error != OK:
+		push_error("An error occurred in the HTTP request.")
+	print("send reward")
+	
 
 #神からのステータスアップを受け取るためシグナルのコールバック
 func _on_status_send_god_present(kind):

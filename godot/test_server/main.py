@@ -17,8 +17,8 @@ def reasoning():
         "id" : 1,
         "next": {
             "kind": "move",
-            "x": random.randint(-10, 10),
-            "y": random.randint(-10, 10)
+            "x": int(a),
+            "y": int(b)
         }
     }
     return data

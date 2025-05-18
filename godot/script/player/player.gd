@@ -93,7 +93,7 @@ func _process(delta):
 # rel = falseで絶対座標で行動
 func _move(x: int, y: int, rel: bool = true):
 	if rel:
-		var distination_pos = map.map_to_local(Vector2(x, y))
+		var distination_pos = map.map_to_local(Vector2(map.local_to_map(position)) + Vector2(x, y))
 		var distance = distination_pos.distance_to(position)
 		var direction = position.direction_to(distination_pos);
 		var tween = self.create_tween()

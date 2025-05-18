@@ -96,7 +96,7 @@ func _process(delta):
 		ndrowsiness.subres(1. / ndrowsiness_use_cycle)
 		
 		var current_grid:Vector2i = map.local_to_map(position)
-		var tiledata:TileMapLayer = $"/root/Main/ItemTile".get_cell_tile_data(Vector2i(current_grid.x,current_grid.y))
+		var tiledata = map.get_cell_tile_data(Vector2i(current_grid.x,current_grid.y))
 		var tileid = tiledata.get_custom_data("kind")
 		
 		if(tileid == 3):

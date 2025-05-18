@@ -52,6 +52,8 @@ func _on_request_completed(result, response_code, headers, body):
 		_move(json["next"]["x"], json["next"]["y"], _send_request)
 	elif (json["next"]["kind"] == "pick"):
 		_pick(json["next"]["item"])
+	elif (json["next"]["kind"] == "drink"):
+		_drink()
 	#_send_request()
 
 func _ready():
@@ -129,33 +131,17 @@ func _move(x: int, y: int, cb: Callable, rel: bool = true):
 		print("not yet impled non rel move")
 
 func _pick(itemid: int):
-	if itemid != 0:
-		if !viewitem_catch.has(itemid):
-			# なければ早期ret
-			_send_request()
-			return
-		var item_pos = viewitem_catch[itemid]
-		_move(item_pos.x, item_pos.y, _pick_aftermove.bind(itemid, item_pos))
-	else:
-		# itemid == 0を水に予約
-		if nearest_water_pos == Vector2.INF:
-			# なければ早期ret
-			_send_request()
-			return
-		_move(nearest_water_pos.x, nearest_water_pos.y, _pick_aftermove.bind(itemid, nearest_water_pos))
+	if !viewitem_catch.has(itemid):
+		# なければ早期ret
+		_send_request()
+		return
+	var item_pos = viewitem_catch[itemid]
+	_move(item_pos.x, item_pos.y, _pick_aftermove.bind(itemid, item_pos))
 		
 
 func _pick_aftermove(itemid: int, item_pos: Vector2):
 	# itemごとの処理
 	match itemid:
-		0: 
-			nthirsty.addres(50./nthirsty_use_cycle)
-			$AnimatedSprite2D.play("drink")
-			#INFO 一秒待機、この実装で良いのかわからん
-			await get_tree().create_timer(1).timeout
-			$AnimatedSprite2D.play("default")
-			_send_request()
-			return
 		1: 
 			satiety.addres(50./satiety_use_cycle) 
 			$AnimatedSprite2D.play("eat")
@@ -169,12 +155,30 @@ func _pick_aftermove(itemid: int, item_pos: Vector2):
 			#var tween = self.create_tween()
 			#tween.tween_interval
 			#
-			ndrowsiness.addres(-1)
+			ndrowsiness.addres(1)
 			stamina.addres(1)
 			
 	# remove処理
 	$"/root/Main/ItemTile".erase_cell(item_pos + onmap_pos)
 	_send_request()
+
+func _drink():
+	if nearest_water_pos == Vector2.INF:
+		# なければ早期ret
+		_send_request()
+		return
+	_move(nearest_water_pos.x, nearest_water_pos.y, _drink_aftermove)
+
+func _drink_aftermove():
+	nthirsty.addres(50./nthirsty_use_cycle)
+	$AnimatedSprite2D.play("drink")
+	#INFO 一秒待機、この実装で良いのかわからん
+	await get_tree().create_timer(1).timeout
+	$AnimatedSprite2D.play("default")
+	_send_request()
+	return
+	
+
 
 func _send_request():
 	const header = ["Content-Type: application/json"]
